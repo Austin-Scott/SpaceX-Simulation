@@ -9,18 +9,22 @@ using namespace std;
 
 const char ValueDeliminator = '|';
 const char TupleDeliminator = '\n';
+const string NullIndicator = "\\N";
 
 string to_string(char* c, int size) {
 	string result(c, size);
+	if (size > 0 && c[0] == '\0') return NullIndicator;
 	return result;
 }
 string to_string(char* c) {
 	string result(c);
+	if (c[0] == '\0') return NullIndicator;
 	return result;
 }
 string to_string(char c) {
 	string result = "";
 	result.push_back(c);
+	if (c == '\0') return NullIndicator;
 	return result;
 }
 string V() {
@@ -29,8 +33,6 @@ string V() {
 string T() {
 	return to_string(TupleDeliminator);
 }
-
-//TODO: Add "creator" methods for all structors below
 
 struct Booster {
 	char BoosterID[5]; //Primary Key
@@ -63,6 +65,28 @@ struct Dragon {
 	char Description[500];
 };
 LinkedList<Dragon> Dragons;
+Dragon* createDragon(string SerialNumber, string Description) {
+	Dragon d;
+	for (int i = 0; i < 4; i++) {
+		if (i < SerialNumber.size()) {
+			d.SerialNumber[i] = SerialNumber[i];
+		}
+		else {
+			d.SerialNumber[i] = '\0';
+		}
+	}
+	for (int i = 0; i < 499; i++) {
+		if (i < Description.size()) {
+			d.Description[i] = Description[i];
+		}
+		else {
+			d.Description[i] = '\0';
+		}
+	}
+	d.Description[499] = '\0';
+	Dragons.push_back(d);
+	return Dragons.back();
+}
 Dragon* findDragon(string SerialNumber) {
 	for (auto i = Dragons.begin(); i.hasNext(); i++) {
 		Dragon* p = &i;
@@ -88,6 +112,29 @@ struct LaunchSite {
 	char Location[255];
 };
 LinkedList<LaunchSite> LaunchSites;
+LaunchSite* createLaunchSite(string Name, string Location) {
+	LaunchSite l;
+	for (int i = 0; i < 99; i++) {
+		if (i < Name.size()) {
+			l.Name[i] = Name[i];
+		}
+		else {
+			l.Name[i] = '\0';
+		}
+	}
+	l.Name[99] = '\0';
+	for (int i = 0; i < 254; i++) {
+		if (i < Location.size()) {
+			l.Location[i] = Location[i];
+		}
+		else {
+			l.Location[i] = '\0';
+		}
+	}
+	l.Location[254] = '\0';
+	LaunchSites.push_back(l);
+	return LaunchSites.back();
+}
 LaunchSite* findLaunchSite(string Name) {
 	for (auto i = LaunchSites.begin(); i.hasNext(); i++) {
 		LaunchSite* p = &i;
@@ -128,6 +175,32 @@ struct Mission {
 	LaunchSite* LaunchSiteName;
 };
 LinkedList<Mission> Missions;
+Mission* createMission(int MissionNumber, string Title, string Description, Date date, LaunchSite* LaunchSiteName) {
+	Mission m;
+	m.MissionNumber = MissionNumber;
+	for (int i = 0; i < 254; i++) {
+		if (i < Title.size()) {
+			m.Title[i] = Title[i];
+		}
+		else {
+			m.Title[i] = '\0';
+		}
+	}
+	m.Title[254] = '\0';
+	for (int i = 0; i < 499; i++) {
+		if (i < Description.size()) {
+			m.Description[i] = Description[i];
+		}
+		else {
+			m.Description[i] = '\0';
+		}
+	}
+	m.Description[499] = '\0';
+	m.date = date;
+	m.LaunchSiteName = LaunchSiteName;
+	Missions.push_back(m);
+	return Missions.back();
+}
 Mission* findMission(int MissionNumber) {
 	for (auto i = Missions.begin(); i.hasNext(); i++) {
 		Mission* p = &i;
@@ -151,6 +224,31 @@ struct flownBy {
 	char LandingOutcome[500];
 };
 LinkedList<flownBy> flownBys;
+flownBy* createFlownBy(Booster* BoosterID, Mission* MissionNumber, string LandingSite, string LandingOutcome) {
+	flownBy f;
+	f.BoosterID = BoosterID;
+	f.MissionNumber = MissionNumber;
+	for (int i = 0; i < 99; i++) {
+		if (i < LandingSite.size()) {
+			f.LandingSite[i] = LandingSite[i];
+		}
+		else {
+			f.LandingSite[i] = '\0';
+		}
+	}
+	f.LandingSite[99] = '\0';
+	for (int i = 0; i < 499; i++) {
+		if (i < LandingOutcome.size()) {
+			f.LandingOutcome[i] = LandingOutcome[i];
+		}
+		else {
+			f.LandingOutcome[i] = '\0';
+		}
+	}
+	f.LandingOutcome[499] = '\0';
+	flownBys.push_back(f);
+	return flownBys.back();
+}
 flownBy* findFlownBy(Booster* BoosterID, Mission* MissionNumber) {
 	for (auto i = flownBys.begin(); i.hasNext(); i++) {
 		flownBy* p = &i;
@@ -178,6 +276,50 @@ struct Payload {
 	Mission* MissionNumber; //Must not be null
 };
 LinkedList<Payload> Payloads;
+Payload* createPayload(string Title, string Orbit, int PayloadMass, string Supplier, string MissionOutcome, Dragon* DragonSerial, Mission* MissionNumber) {
+	Payload p;
+	for (int i = 0; i < 99; i++) {
+		if (i < Title.size()) {
+			p.Title[i] = Title[i];
+		}
+		else {
+			p.Title[i] = '\0';
+		}
+	}
+	p.Title[99] = '\0';
+	for (int i = 0; i < 99; i++) {
+		if (i < Orbit.size()) {
+			p.Orbit[i] = Orbit[i];
+		}
+		else {
+			p.Orbit[i] = '\0';
+		}
+	}
+	p.Orbit[99] = '\0';
+	p.PayloadMass = PayloadMass;
+	for (int i = 0; i < 254; i++) {
+		if (i < Supplier.size()) {
+			p.Supplier[i] = Supplier[i];
+		}
+		else {
+			p.Supplier[i] = '\0';
+		}
+	}
+	p.Supplier[254] = '\0';
+	for (int i = 0; i < 499; i++) {
+		if (i < MissionOutcome.size()) {
+			p.MissionOutcome[i] = MissionOutcome[i];
+		}
+		else {
+			p.MissionOutcome[i] = '\0';
+		}
+	}
+	p.MissionOutcome[499] = '\0';
+	p.DragonSerial = DragonSerial;
+	p.MissionNumber = MissionNumber;
+	Payloads.push_back(p);
+	return Payloads.back();
+}
 Payload* findPayload(string Title) {
 	for (auto i = Payloads.begin(); i.hasNext(); i++) {
 		Payload* p = &i;

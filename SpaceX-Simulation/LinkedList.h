@@ -68,6 +68,10 @@ public:
 		}
 		return &(currentNode->data);
 	}
+	T* back() {
+		if (size == 0) return nullptr;
+		return &(Tail->data);
+	}
 	LinkedListIterator begin() {
 		LinkedListIterator result(Head);
 		return result;
