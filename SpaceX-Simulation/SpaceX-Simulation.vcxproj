@@ -114,6 +114,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LinkedList.h" />
+    <ClInclude Include="RealData.h" />
+    <ClInclude Include="SimulatedData.h" />
     <ClInclude Include="Tables.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
