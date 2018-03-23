@@ -33,6 +33,27 @@ string V() {
 string T() {
 	return to_string(TupleDeliminator);
 }
+void strcpy(string src, char* dest, int n, bool varlength=true) {
+	int end = varlength ? n - 1 : n;
+	for (int i = 0; i < end - 1; i++) {
+		if (i < src.size()) {
+			dest[i] = src[i];
+		}
+		else {
+			dest[i] = '\0';
+		}
+	}
+	if(varlength)
+		dest[n - 1] = '\0';
+}
+bool stringcmp(string a, char* b, int n, bool varlength = true) {
+	for (int i = 0; i < n; i++) {
+		if (varlength&&(i >= a.size() || i == n - 1) && b[i] == '\0') return true;
+		if (!varlength&&i == n - 1 && a.size() == n&&a[i] == b[i]) return true;
+		if (i >= a.size() || a[i] != b[i]) return false;
+	}
+	return false;
+}
 
 struct Booster {
 	char BoosterID[5]; //Primary Key
@@ -43,11 +64,8 @@ LinkedList<Booster> Boosters;
 Booster* findBooster(string BoosterID) {
 	for (auto i = Boosters.begin(); i.hasNext(); i++) {
 		Booster* p = &i;
-		for (int j = 0; j < 100; j++) {
-			if (j >= BoosterID.size()) break;
-			if (BoosterID[j] != p->BoosterID[j]) break;
-			if (j == 4) return p;
-		}
+		if (stringcmp(BoosterID, p->BoosterID, 5, false))
+			return p;
 	}
 	return nullptr;
 }
@@ -67,34 +85,16 @@ struct Dragon {
 LinkedList<Dragon> Dragons;
 Dragon* createDragon(string SerialNumber, string Description) {
 	Dragon d;
-	for (int i = 0; i < 4; i++) {
-		if (i < SerialNumber.size()) {
-			d.SerialNumber[i] = SerialNumber[i];
-		}
-		else {
-			d.SerialNumber[i] = '\0';
-		}
-	}
-	for (int i = 0; i < 499; i++) {
-		if (i < Description.size()) {
-			d.Description[i] = Description[i];
-		}
-		else {
-			d.Description[i] = '\0';
-		}
-	}
-	d.Description[499] = '\0';
+	strcpy(SerialNumber, d.SerialNumber, 4, false);
+	strcpy(Description, d.Description, 500);
 	Dragons.push_back(d);
 	return Dragons.back();
 }
 Dragon* findDragon(string SerialNumber) {
 	for (auto i = Dragons.begin(); i.hasNext(); i++) {
 		Dragon* p = &i;
-		for (int j = 0; j < 100; j++) {
-			if (j >= SerialNumber.size()) break;
-			if (SerialNumber[j] != p->SerialNumber[j]) break;
-			if (j == 3) return p;
-		}
+		if (stringcmp(SerialNumber, p->SerialNumber, 4, false))
+			return p;
 	}
 	return nullptr;
 }
@@ -114,36 +114,16 @@ struct LaunchSite {
 LinkedList<LaunchSite> LaunchSites;
 LaunchSite* createLaunchSite(string Name, string Location) {
 	LaunchSite l;
-	for (int i = 0; i < 99; i++) {
-		if (i < Name.size()) {
-			l.Name[i] = Name[i];
-		}
-		else {
-			l.Name[i] = '\0';
-		}
-	}
-	l.Name[99] = '\0';
-	for (int i = 0; i < 254; i++) {
-		if (i < Location.size()) {
-			l.Location[i] = Location[i];
-		}
-		else {
-			l.Location[i] = '\0';
-		}
-	}
-	l.Location[254] = '\0';
+	strcpy(Name, l.Name, 100);
+	strcpy(Location, l.Location, 255);
 	LaunchSites.push_back(l);
 	return LaunchSites.back();
 }
 LaunchSite* findLaunchSite(string Name) {
 	for (auto i = LaunchSites.begin(); i.hasNext(); i++) {
 		LaunchSite* p = &i;
-		for (int j = 0; j < 100; j++) {
-			if (j >= Name.size()) break;
-			if (p->Name[j] == '\0') return p;
-			if (Name[j] != p->Name[j]) break;
-			if (j == 99) return p;
-		}
+		if (stringcmp(Name, p->Name, 100))
+			return p;
 	}
 	return nullptr;
 }
@@ -178,24 +158,8 @@ LinkedList<Mission> Missions;
 Mission* createMission(int MissionNumber, string Title, string Description, Date date, LaunchSite* LaunchSiteName) {
 	Mission m;
 	m.MissionNumber = MissionNumber;
-	for (int i = 0; i < 254; i++) {
-		if (i < Title.size()) {
-			m.Title[i] = Title[i];
-		}
-		else {
-			m.Title[i] = '\0';
-		}
-	}
-	m.Title[254] = '\0';
-	for (int i = 0; i < 499; i++) {
-		if (i < Description.size()) {
-			m.Description[i] = Description[i];
-		}
-		else {
-			m.Description[i] = '\0';
-		}
-	}
-	m.Description[499] = '\0';
+	strcpy(Title, m.Title, 255);
+	strcpy(Description, m.Description, 500);
 	m.date = date;
 	m.LaunchSiteName = LaunchSiteName;
 	Missions.push_back(m);
@@ -228,24 +192,8 @@ flownBy* createFlownBy(Booster* BoosterID, Mission* MissionNumber, string Landin
 	flownBy f;
 	f.BoosterID = BoosterID;
 	f.MissionNumber = MissionNumber;
-	for (int i = 0; i < 99; i++) {
-		if (i < LandingSite.size()) {
-			f.LandingSite[i] = LandingSite[i];
-		}
-		else {
-			f.LandingSite[i] = '\0';
-		}
-	}
-	f.LandingSite[99] = '\0';
-	for (int i = 0; i < 499; i++) {
-		if (i < LandingOutcome.size()) {
-			f.LandingOutcome[i] = LandingOutcome[i];
-		}
-		else {
-			f.LandingOutcome[i] = '\0';
-		}
-	}
-	f.LandingOutcome[499] = '\0';
+	strcpy(LandingSite, f.LandingSite, 100);
+	strcpy(LandingOutcome, f.LandingOutcome, 500);
 	flownBys.push_back(f);
 	return flownBys.back();
 }
@@ -278,43 +226,11 @@ struct Payload {
 LinkedList<Payload> Payloads;
 Payload* createPayload(string Title, string Orbit, int PayloadMass, string Supplier, string MissionOutcome, Dragon* DragonSerial, Mission* MissionNumber) {
 	Payload p;
-	for (int i = 0; i < 99; i++) {
-		if (i < Title.size()) {
-			p.Title[i] = Title[i];
-		}
-		else {
-			p.Title[i] = '\0';
-		}
-	}
-	p.Title[99] = '\0';
-	for (int i = 0; i < 99; i++) {
-		if (i < Orbit.size()) {
-			p.Orbit[i] = Orbit[i];
-		}
-		else {
-			p.Orbit[i] = '\0';
-		}
-	}
-	p.Orbit[99] = '\0';
+	strcpy(Title, p.Title, 100);
+	strcpy(Orbit, p.Orbit, 100);
 	p.PayloadMass = PayloadMass;
-	for (int i = 0; i < 254; i++) {
-		if (i < Supplier.size()) {
-			p.Supplier[i] = Supplier[i];
-		}
-		else {
-			p.Supplier[i] = '\0';
-		}
-	}
-	p.Supplier[254] = '\0';
-	for (int i = 0; i < 499; i++) {
-		if (i < MissionOutcome.size()) {
-			p.MissionOutcome[i] = MissionOutcome[i];
-		}
-		else {
-			p.MissionOutcome[i] = '\0';
-		}
-	}
-	p.MissionOutcome[499] = '\0';
+	strcpy(Supplier, p.Supplier, 255);
+	strcpy(MissionOutcome, p.MissionOutcome, 500);
 	p.DragonSerial = DragonSerial;
 	p.MissionNumber = MissionNumber;
 	Payloads.push_back(p);
@@ -323,12 +239,8 @@ Payload* createPayload(string Title, string Orbit, int PayloadMass, string Suppl
 Payload* findPayload(string Title) {
 	for (auto i = Payloads.begin(); i.hasNext(); i++) {
 		Payload* p = &i;
-		for (int j = 0; j < 100; j++) {
-			if (j >= Title.size()) break;
-			if (p->Title[j] == '\0') return p;
-			if (Title[j] != p->Title[j]) break;
-			if (j == 99) return p;
-		}
+		if (stringcmp(Title, p->Title, 100))
+			return p;
 	}
 	return nullptr;
 }
