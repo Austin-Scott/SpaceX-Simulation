@@ -59,8 +59,20 @@ struct Booster {
 	char BoosterID[5]; //Primary Key
 	char FlightStatus[255];
 	int BlockNumber;
+
+	//Stored data not used in final database
+	int flights;
 };
 LinkedList<Booster> Boosters;
+Booster* createBooster(string BoosterID, string FlightStatus, int BlockNumber) {
+	Booster b;
+	strcpy(BoosterID, b.BoosterID, 5, false);
+	strcpy(FlightStatus, b.FlightStatus, 255);
+	b.BlockNumber = BlockNumber;
+	b.flights = 0;
+	Boosters.push_back(b);
+	return Boosters.back();
+}
 Booster* findBooster(string BoosterID) {
 	for (auto i = Boosters.begin(); i.hasNext(); i++) {
 		Booster* p = &i;
@@ -136,14 +148,140 @@ string listLaunchSites() {
 	return result;
 }
 
+int getDaysInMonth(int month, int year) {
+	if (month != 2) {
+		if (month < 8) {
+			if (month % 2 == 0) {
+				return 30;
+			}
+			else {
+				return 31;
+			}
+		}
+		else {
+			if (month % 2 == 0) {
+				return 31;
+			}
+			else {
+				return 30;
+			}
+		}
+	}
+	else {
+		if (year % 4 == 0 && (year % 100 != 0 || (year % 100 == 0 && year % 400 == 0))) { //If it is a leap year
+			return 29;
+		}
+		else {
+			return 28;
+		}
+	}
+}
 struct Date { //Meta-Structure for holding dates
 	int day; 
 	int month;
 	int year; //Such as: 2018
+	Date() {}
+	Date(string date) { //Format YYYY-MM-DD
+		if (date.size() == 10) {
+			year = atoi(date.substr(0, 4).c_str());
+			month = atoi(date.substr(5, 2).c_str());
+			day = atoi(date.substr(8, 2).c_str());
+		}
+	}
+	Date(int year, int month, int day) {
+		this->year = year;
+		this->month = month;
+		this->day = day;
+	}
+	Date operator+(int days) { //Advance time by "days" days
+		Date result = *this;
+		for (int i = 0; i < days; i++) {
+			result.day++;
+			if (day > getDaysInMonth(result.month, result.year)) {
+				result.day = 1;
+				result.month++;
+				if (result.month > 12) {
+					result.month = 1;
+					result.year++;
+				}
+			}
+		}
+	}
+	void operator+=(int days) {
+		Date result = operator+(days);
+		day = result.day;
+		month = result.month;
+		year = result.year;
+	}
+	bool operator==(Date other) {
+		return year == other.year&&month == other.month&&day == other.day;
+	}
+	bool operator!=(Date other) {
+		return !operator==(other);
+	}
+	bool operator>(Date other) {
+		if (year > other.year) {
+			return true;
+		}
+		else if (year < other.year) {
+			return false;
+		}
+		else {
+			if (month > other.month) {
+				return true;
+			}
+			else if (month < other.month) {
+				return false;
+			}
+			else {
+				if (day > other.day) {
+					return true;
+				}
+				else if (day < other.day) {
+					return false;
+				}
+				else {
+					return false;
+				}
+			}
+		}
+	}
+	int operator-(Date other) { //Get number of days between this date and other date
+		int result = 0;
+		if (operator>(other)) {
+			while (other != *this) {
+				result++;
+				other += 1;
+			}
+		}
+		else {
+			Date temp = *this;
+			while (temp != other) {
+				result++;
+				temp += 1;
+			}
+		}
+		return result;
+	}
 };
+string padWithZeros(string str, int width) {
+	if (str.size() < width) {
+		int zeros = width - str.size();
+		for (int i = 0; i < zeros; i++) {
+			str = '0' + str;
+		}
+	}
+	return str;
+}
 string to_string(Date date) {
 	string result;
-	//TODO: Add date string convertion
+	string sYear = to_string(date.year);
+	sYear = padWithZeros(sYear, 4);
+	string sMonth = to_string(date.month);
+	sMonth = padWithZeros(sMonth, 2);
+	string sDay = to_string(date.day);
+	sDay = padWithZeros(sDay, 2);
+	result = sYear + "-" + sMonth + "-" + sDay;
 	return result;
 }
 

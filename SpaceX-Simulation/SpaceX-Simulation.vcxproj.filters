@@ -32,5 +32,8 @@
     <ClInclude Include="SimulatedData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Hanger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -2,6 +2,7 @@
 #include <fstream>
 
 #include "Tables.h"
+#include "Hanger.h
 #include "RealData.h"
 #include "SimulatedData.h"
 
