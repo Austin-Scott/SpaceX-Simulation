@@ -10,6 +10,7 @@ using namespace rapidjson;
 const string startDate = "2010-06-04";
 const string endDate = "2018-03-24";
 int highestMissionNumber = 0;
+int highestBoosterNumber = 0;
 
 //Used for interacting with Curl to download SpaceX api responses
 string executeSystemCommand(string cmd) {
@@ -154,6 +155,10 @@ void parseMissionData(const Value &mission) {
 void prepareBoosterForSimulation(Booster* booster) {
 	Document doc;
 	string boosterID(booster->BoosterID, 5);
+
+	int boosterNum = atoi(boosterID.substr(1, 4).c_str());
+	if (boosterNum > highestBoosterNumber) highestBoosterNumber = boosterNum;
+
 	string command = "curl -k -s ";
 	command += "\"https://api.spacexdata.com/v2/parts/cores/" + boosterID + "\"";
 	string result = executeSystemCommand(command);

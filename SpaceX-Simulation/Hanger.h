@@ -28,6 +28,11 @@ public:
 		Date date;
 		addBooster(booster, date);
 	}
+	void addBoosters(vector<Booster*> boosters, Date added) {
+		for (auto i : boosters) {
+			addBooster(i, added);
+		}
+	}
 	void removeBooster(Booster* booster) {
 		for (int i = 0; i < storedBoosters.size();i++) {
 			if (storedBoosters[i].booster == booster) {
@@ -56,6 +61,7 @@ public:
 				result.push_back(i.booster);
 			}
 		}
+		removeBoosters(result);
 		return result;
 	}
 };
@@ -66,4 +72,3 @@ Hanger flightReadyFalconHeavyCores;
 Hanger falcon9Refurbishment;
 Hanger falconHeavySideBoosterRefurbishment;
 Hanger falconHeavyCoreRefurbishment;
-Hanger falconHeavySideBoosterConversion;
