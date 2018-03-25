@@ -65,10 +65,3 @@ public:
 		return result;
 	}
 };
-
-Hanger flightReadyFalcon9s;
-Hanger flightReadyFalconHeavySideBoosters;
-Hanger flightReadyFalconHeavyCores;
-Hanger falcon9Refurbishment;
-Hanger falconHeavySideBoosterRefurbishment;
-Hanger falconHeavyCoreRefurbishment;
