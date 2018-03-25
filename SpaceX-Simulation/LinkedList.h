@@ -5,6 +5,7 @@ template<class T> struct Node {
 	T data;
 	Node(const T &initialData) {
 		next = nullptr;
+		data = initialData;
 	}
 };
 

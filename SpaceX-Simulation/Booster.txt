@@ -1,0 +1,44 @@
+B0003|expended|1
+B0004|expended|1
+B0005|expended|1
+B0006|expended|1
+B0007|expended|1
+B1003|destroyed|1
+B1004|expended|1
+B1005|expended|1
+B1006|destroyed|1
+B1007|destroyed|1
+B1008|expended|1
+B1011|expended|1
+B1010|expended|1
+B1012|destroyed|1
+B1013|destroyed|1
+B1014|expended|1
+B1015|destroyed|1
+B1016|expended|1
+B1018|destroyed|1
+B1019|retired|1
+B1017|destroyed|1
+B1020|destroyed|1
+B1021|retired|2
+B1022|retired|2
+B1023|retired|2
+B1024|destroyed|2
+B1025|retired|2
+B1026|retired|2
+B1028|destroyed|3
+B1029|retired|3
+B1031|retired|3
+B1030|destroyed|3
+B1032|destroyed|3
+B1034|expended|3
+B1035|retired|3
+B1036|destroyed|3
+B1037|expended|3
+B1039|Flight Operational|4
+B1038|expended|3
+B1040|Flight Operational|4
+B1041|Flight Operational|4
+B1042|Flight Operational|4
+B1043|Flight Operational|4
+B1033|destroyed|3

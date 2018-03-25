@@ -35,7 +35,7 @@ string T() {
 }
 void strcpy(string src, char* dest, int n, bool varlength=true) {
 	int end = varlength ? n - 1 : n;
-	for (int i = 0; i < end - 1; i++) {
+	for (int i = 0; i < end; i++) {
 		if (i < src.size()) {
 			dest[i] = src[i];
 		}
@@ -45,6 +45,11 @@ void strcpy(string src, char* dest, int n, bool varlength=true) {
 	}
 	if(varlength)
 		dest[n - 1] = '\0';
+}
+void strmov(const char* src, char* dest, int n) {
+	for (int i = 0; i < n; i++) {
+		dest[i] = src[i];
+	}
 }
 bool stringcmp(string a, char* b, int n, bool varlength = true) {
 	for (int i = 0; i < n; i++) {
@@ -62,6 +67,16 @@ struct Booster {
 
 	//Stored data not used in final database
 	int flights;
+
+	Booster() {}
+	Booster(const Booster &other) {
+		operator=(other);
+	}
+	void operator=(const Booster &other) {
+		strmov(other.BoosterID, BoosterID, 5);
+		strmov(other.FlightStatus, FlightStatus, 255);
+		BlockNumber = other.BlockNumber;
+	}
 };
 LinkedList<Booster> Boosters;
 Booster* createBooster(string BoosterID, string FlightStatus, int BlockNumber) {
@@ -94,6 +109,15 @@ string listBoosters() {
 struct Dragon {
 	char SerialNumber[4]; //Primary Key
 	char Description[500];
+
+	Dragon() {}
+	Dragon(const Dragon &other) {
+		operator=(other);
+	}
+	void operator=(const Dragon &other) {
+		strmov(other.SerialNumber, SerialNumber, 4);
+		strmov(other.Description, Description, 500);
+	}
 };
 LinkedList<Dragon> Dragons;
 Dragon* createDragon(string SerialNumber, string Description) {
@@ -123,6 +147,15 @@ string listDragons() {
 struct LaunchSite {
 	char Name[100]; //Primary Key
 	char Location[255];
+
+	LaunchSite() {}
+	LaunchSite(const LaunchSite &other) {
+		operator=(other);
+	}
+	void operator=(const LaunchSite &other) {
+		strmov(other.Name, Name, 100);
+		strmov(other.Location, Location, 255);
+	}
 };
 LinkedList<LaunchSite> LaunchSites;
 LaunchSite* createLaunchSite(string Name, string Location) {
@@ -306,6 +339,18 @@ struct Mission {
 	char Description[500];
 	Date date;
 	LaunchSite* LaunchSiteName;
+
+	Mission() {}
+	Mission(const Mission &other) {
+		operator=(other);
+	}
+	void operator=(const Mission &other) {
+		MissionNumber = other.MissionNumber;
+		strmov(other.Title, Title, 255);
+		strmov(other.Description, Description, 500);
+		date = other.date;
+		LaunchSiteName = other.LaunchSiteName;
+	}
 };
 LinkedList<Mission> Missions;
 Mission* createMission(int MissionNumber, string Title, string Description, Date date, LaunchSite* LaunchSiteName) {
@@ -339,6 +384,17 @@ struct flownBy {
 	Mission* MissionNumber; //Primary Key
 	char LandingSite[100];
 	char LandingOutcome[500];
+
+	flownBy() {}
+	flownBy(const flownBy &other) {
+		operator=(other);
+	}
+	void operator=(const flownBy &other) {
+		BoosterID = other.BoosterID;
+		MissionNumber = other.MissionNumber;
+		strmov(other.LandingSite, LandingSite, 100);
+		strmov(other.LandingOutcome, LandingOutcome, 500);
+	}
 };
 LinkedList<flownBy> flownBys;
 flownBy* createFlownBy(Booster* BoosterID, Mission* MissionNumber, string LandingSite, string LandingOutcome) {
@@ -375,6 +431,20 @@ struct Payload {
 	char MissionOutcome[500];
 	Dragon* DragonSerial;
 	Mission* MissionNumber; //Must not be null
+
+	Payload() {}
+	Payload(const Payload &other) {
+		operator=(other);
+	}
+	void operator=(const Payload &other) {
+		strmov(other.Title, Title, 100);
+		strmov(other.Orbit, Orbit, 100);
+		PayloadMass = other.PayloadMass;
+		strmov(other.Supplier, Supplier, 255);
+		strmov(other.MissionOutcome, MissionOutcome, 500);
+		DragonSerial = other.DragonSerial;
+		MissionNumber = other.MissionNumber;
+	}
 };
 LinkedList<Payload> Payloads;
 Payload* createPayload(string Title, string Orbit, int PayloadMass, string Supplier, string MissionOutcome, Dragon* DragonSerial, Mission* MissionNumber) {

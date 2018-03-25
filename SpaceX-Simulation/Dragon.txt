@@ -1,0 +1,12 @@
+C101|Reentered after three weeks in orbit
+C102|First Dragon soacecraft
+C103|First of twenty missions flown under the CRS1 contract
+C104|Dragon Capsule
+C105|First Dragon v1.1 capsule
+C106|First Dragon capsule to be reused
+C107|Dragon Capsule
+C108|Second Dragon capsule to be reused
+C109|Destroyed on impact after F9 launch failure
+C110|Successful Dragon RTF after CRS-7 failure
+C111|In storage at Port of LA as of 11/27/16
+C112|Dragon Capsule

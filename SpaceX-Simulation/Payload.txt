@@ -1,0 +1,57 @@
+Dragon Qualification Unit|LEO|\N|SpaceX|Complete success.|\N|6
+COTS Demo Flight 1|LEO|\N|NASA(COTS)|Complete success.|C101|7
+Cubesats|LEO|\N|NRO|Complete success.|\N|7
+COTS Demo Flight 2|LEO|525|NASA(COTS)|Complete success.|C102|8
+SpaceX CRS-1|ISS|400|NASA (CRS)|Complete success.|C103|9
+Orbcomm-OG2|LEO|400|Orbcomm|Complete success.|\N|9
+SpaceX CRS-2|ISS|677|NASA (CRS)|Complete success.|C104|10
+CASSIOPE|Polar|500|MDA|Complete success.|\N|11
+SES-8|GTO|3170|SES|Complete success.|\N|12
+Thaicom 6|GTO|3325|Thaicom|Complete success.|\N|13
+SpaceX CRS-3|ISS|2296|NASA (CRS)|Complete success.|C105|14
+Orbcomm-OG2-M1|LEO|1316|Orbcomm|Complete success.|\N|15
+AsiaSat 8|LEO|4535|AsiaSat|Complete success.|\N|16
+AsiaSat 6|GTO|4428|AsiaSat|Complete success.|\N|17
+SpaceX CRS-4|ISS|2216|NASA (CRS)|Complete success.|C106|18
+SpaceX CRS-5|ISS|2395|NASA (CRS)|Complete success.|C107|19
+DSCOVR|ES-L1|570|NASA|Complete success.|\N|20
+ABS-3A|GTO|4159|ABS|Complete success.|\N|21
+Eutelsat 115 West B|GTO|4159|Eutelsat|Complete success.|\N|21
+SpaceX CRS-6|ISS|1898|NASA (CRS)|Complete success.|C108|22
+TürkmenÄlem 52°E / MonacoSAT|GTO|4707|Turkmenistan National Space Agency|Complete success.|\N|23
+SpaceX CRS-7|ISS|1952|NASA (CRS)|Mission failed.|C109|24
+Orbcomm OG2|LEO|2034|Orbcomm|Complete success.|\N|25
+Jason-3|Polar|553|NASA|Complete success.|\N|26
+SES-9|GTO|5271|SES|Complete success.|\N|27
+SpaceX CRS-8|ISS|3136|NASA (CRS)|Complete success.|C110|28
+JCSAT-2B|GTO|4696|SKY Perfect JSAT Group|Complete success.|\N|29
+Thaicom 8|GTO|3100|Thaicom|Complete success.|\N|30
+ABS-2A|GTO|1800|ABS|Complete success.|\N|31
+Eutelsat 117 West B|GTO|1800|Eutelsat|Complete success.|\N|31
+SpaceX CRS-9|ISS|2257|NASA (CRS)|Complete success.|C111|32
+JCSAT-16|GTO|4600|SKY Perfect JCSAT Group|Complete success.|\N|33
+Amos-6|GTO|5500|Spacecom|Mission failed.|\N|34
+Iridium NEXT 1|PO|9600|Iridium Communications|Complete success.|\N|35
+SpaceX CRS-10|ISS|2490|NASA (CRS)|Complete success.|C112|36
+EchoStar 23|GTO|5600|EchoStar|Complete success.|\N|37
+SES-10|GTO|5300|SES|Complete success.|\N|38
+NROL-76|LEO|\N|NRO|Complete success.|\N|39
+Inmarsat-5 F4|GTO|6070|Inmarsat|Complete success.|\N|40
+SpaceX CRS-11|ISS|2708|NASA (CRS)|Complete success.|C106|41
+BulgariaSat-1|GTO|3669|Bulgaria Sat|Complete success.|\N|42
+Iridium NEXT 2|PO|9600|Iridium Communications|Complete success.|\N|43
+Intelsat 35e|GTO|6761|Intelsat|Complete success.|\N|44
+SpaceX CRS-12|ISS|3310|NASA (CRS)|Complete success.|C113|45
+FormoSat-5|SSO|475|NSPO (Taiwan)|Complete success.|\N|46
+X-37B OTV-5|LEO|4990|USAF|Complete success.|\N|47
+Iridium NEXT 3|PO|8600|Iridium Communications|Complete success.|\N|48
+SES-11|GTO|2700|SES|Complete success.|\N|49
+EchoStar 105|GTO|2700|EchoStar|Complete success.|\N|49
+KoreaSat 5A|GTO|3700|KT Corporation|Complete success.|\N|50
+SpaceX CRS-13|ISS|2205|NASA (CRS)|Complete success.|C108|51
+Iridium NEXT 4|PO|9600|Iridium Communications|Complete success.|\N|52
+ZUMA|LEO|\N|Northrop Grumman|Complete success.|\N|53
+GovSat-1|GTO|4000|GovSat|Complete success.|\N|54
+Tesla Roadster|Heliocentric orbit|\N|SpaceX|Complete success.|\N|55
+Paz|LEO|1350|HisdeSAT|Complete success.|\N|56
+Microsat-2a, -2b|LEO|800|SpaceX|Complete success.|\N|56
