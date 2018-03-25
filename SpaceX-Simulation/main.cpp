@@ -2,7 +2,7 @@
 #include <fstream>
 
 #include "Tables.h"
-#include "Hanger.h
+#include "Hanger.h"
 #include "RealData.h"
 #include "SimulatedData.h"
 
@@ -51,4 +51,5 @@ int main() {
 	runSimulation();
 	writeResultsToFiles();
 	cleanAllData();
+	system("pause");
 }

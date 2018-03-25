@@ -74,7 +74,7 @@ Booster* createBooster(string BoosterID, string FlightStatus, int BlockNumber) {
 	return Boosters.back();
 }
 Booster* findBooster(string BoosterID) {
-	for (auto i = Boosters.begin(); i.hasNext(); i++) {
+	for (auto i = Boosters.begin(); i.hasNext(); i.operator++()) {
 		Booster* p = &i;
 		if (stringcmp(BoosterID, p->BoosterID, 5, false))
 			return p;
@@ -83,9 +83,10 @@ Booster* findBooster(string BoosterID) {
 }
 string listBoosters() {
 	string result = "";
-	for (auto i = Boosters.begin(); i.hasNext(); i++) {
+	for (auto i = Boosters.begin(); i.hasNext(); i.operator++()) {
 		auto p = &i;
-		result += to_string(p->BoosterID, 5) + V() + to_string(p->flightStatus) + V() + to_string(p->BlockNumber) + T();
+		string blockNumber = p->BlockNumber != INT_MIN ? to_string(p->BlockNumber) : NullIndicator;
+		result += to_string(p->BoosterID, 5) + V() + to_string(p->FlightStatus) + V() + blockNumber + T();
 	}
 	return result;
 }
@@ -103,7 +104,7 @@ Dragon* createDragon(string SerialNumber, string Description) {
 	return Dragons.back();
 }
 Dragon* findDragon(string SerialNumber) {
-	for (auto i = Dragons.begin(); i.hasNext(); i++) {
+	for (auto i = Dragons.begin(); i.hasNext(); i.operator++()) {
 		Dragon* p = &i;
 		if (stringcmp(SerialNumber, p->SerialNumber, 4, false))
 			return p;
@@ -112,7 +113,7 @@ Dragon* findDragon(string SerialNumber) {
 }
 string listDragons() {
 	string result = "";
-	for (auto i = Dragons.begin(); i.hasNext(); i++) {
+	for (auto i = Dragons.begin(); i.hasNext(); i.operator++()) {
 		auto p = &i;
 		result += to_string(p->SerialNumber, 4) + V() + to_string(p->Description) + T();
 	}
@@ -132,16 +133,25 @@ LaunchSite* createLaunchSite(string Name, string Location) {
 	return LaunchSites.back();
 }
 LaunchSite* findLaunchSite(string Name) {
-	for (auto i = LaunchSites.begin(); i.hasNext(); i++) {
+	for (auto i = LaunchSites.begin(); i.hasNext(); i.operator++()) {
 		LaunchSite* p = &i;
 		if (stringcmp(Name, p->Name, 100))
 			return p;
 	}
 	return nullptr;
 }
+LaunchSite* findOrCreateLaunchSite(string name, string location) {
+	LaunchSite* result = findLaunchSite(name);
+	if (result == nullptr) {
+		return createLaunchSite(name, location);
+	}
+	else {
+		return result;
+	}
+}
 string listLaunchSites() {
 	string result = "";
-	for (auto i = LaunchSites.begin(); i.hasNext(); i++) {
+	for (auto i = LaunchSites.begin(); i.hasNext(); i.operator++()) {
 		auto p = &i;
 		result += to_string(p->Name) + V() + to_string(p->Location) + T();
 	}
@@ -186,6 +196,11 @@ struct Date { //Meta-Structure for holding dates
 			year = atoi(date.substr(0, 4).c_str());
 			month = atoi(date.substr(5, 2).c_str());
 			day = atoi(date.substr(8, 2).c_str());
+		}
+		else {
+			year = 0;
+			month = 0;
+			day = 0;
 		}
 	}
 	Date(int year, int month, int day) {
@@ -304,7 +319,7 @@ Mission* createMission(int MissionNumber, string Title, string Description, Date
 	return Missions.back();
 }
 Mission* findMission(int MissionNumber) {
-	for (auto i = Missions.begin(); i.hasNext(); i++) {
+	for (auto i = Missions.begin(); i.hasNext(); i.operator++()) {
 		Mission* p = &i;
 		if (p->MissionNumber == MissionNumber) return p;
 	}
@@ -312,9 +327,9 @@ Mission* findMission(int MissionNumber) {
 }
 string listMissions() {
 	string result = "";
-	for (auto i = Missions.begin(); i.hasNext(); i++) {
+	for (auto i = Missions.begin(); i.hasNext(); i.operator++()) {
 		auto p = &i;
-		result += to_string(p->MissionNumber) + V() + to_string(p->Title) + V() + to_string(p->Description) + V() + to_string(p->date) + V() + to_string(findLaunchSite(p->LaunchSiteName)->Name) + T();
+		result += to_string(p->MissionNumber) + V() + to_string(p->Title) + V() + to_string(p->Description) + V() + to_string(p->date) + V() + to_string(p->LaunchSiteName->Name) + T();
 	}
 	return result;
 }
@@ -336,7 +351,7 @@ flownBy* createFlownBy(Booster* BoosterID, Mission* MissionNumber, string Landin
 	return flownBys.back();
 }
 flownBy* findFlownBy(Booster* BoosterID, Mission* MissionNumber) {
-	for (auto i = flownBys.begin(); i.hasNext(); i++) {
+	for (auto i = flownBys.begin(); i.hasNext(); i.operator++()) {
 		flownBy* p = &i;
 		if (p->BoosterID == BoosterID&&p->MissionNumber == MissionNumber)
 			return p;
@@ -345,9 +360,9 @@ flownBy* findFlownBy(Booster* BoosterID, Mission* MissionNumber) {
 }
 string listflownBys() {
 	string result = "";
-	for (auto i = flownBys.begin(); i.hasNext(); i++) {
+	for (auto i = flownBys.begin(); i.hasNext(); i.operator++()) {
 		auto p = &i;
-		result += to_string(findBooster(p->BoosterID)->BoosterID) + V() + to_string(findMission(p->MissionNumber)->MissionNumber) + V() + to_string(p->LandingSite) + V() + to_string(p->LandingOutcome) + T();
+		result += to_string(p->BoosterID->BoosterID, 5) + V() + to_string(p->MissionNumber->MissionNumber) + V() + to_string(p->LandingSite) + V() + to_string(p->LandingOutcome) + T();
 	}
 	return result;
 }
@@ -375,7 +390,7 @@ Payload* createPayload(string Title, string Orbit, int PayloadMass, string Suppl
 	return Payloads.back();
 }
 Payload* findPayload(string Title) {
-	for (auto i = Payloads.begin(); i.hasNext(); i++) {
+	for (auto i = Payloads.begin(); i.hasNext(); i.operator++()) {
 		Payload* p = &i;
 		if (stringcmp(Title, p->Title, 100))
 			return p;
@@ -384,10 +399,12 @@ Payload* findPayload(string Title) {
 }
 string listPayloads() {
 	string result = "";
-	for (auto i = Payloads.begin(); i.hasNext(); i++) {
+	for (auto i = Payloads.begin(); i.hasNext(); i.operator++()) {
 		auto p = &i;
-		result += to_string(p->Title) + V() + to_string(p->Orbit) + V() + to_string(p->PayloadMass) + V() + to_string(p->Supplier) + V() + to_string(p->MissionOutcome) + V()
-			+ to_string(findDragon(p->DragonSerial)->SerialNumber) + V() + to_string(findMission(p->MissionNumber)->MissionNumber) + T();
+		string payloadMass = p->PayloadMass != INT_MIN ? to_string(p->PayloadMass) : NullIndicator;
+		string dragonSerial = p->DragonSerial != nullptr ? to_string(p->DragonSerial->SerialNumber, 4) : NullIndicator;
+		result += to_string(p->Title) + V() + to_string(p->Orbit) + V() + payloadMass + V() + to_string(p->Supplier) + V() + to_string(p->MissionOutcome) + V()
+			+ dragonSerial + V() + to_string(p->MissionNumber->MissionNumber) + T();
 	}
 	return result;
 }

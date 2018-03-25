@@ -25,17 +25,17 @@ public:
 		return &currentNode->data;
 	}
 	bool hasNext() {
-		return currentNode->next != nullptr;
+		return currentNode!=nullptr && currentNode->next != nullptr;
 	}
-	LinkedListIterator operator+(int offset) {
-		LinkedListIterator result(currentNode);
+	LinkedListIterator<T> operator+(int offset) {
+		LinkedListIterator<T> result(currentNode);
 		for (int i = 0; i < offset; i++) {
 			result.next();
 		}
 		return result;
 	}
 	void operator++() {
-		result.next;
+		this->next();
 	}
 };
 
@@ -72,15 +72,15 @@ public:
 		if (size == 0) return nullptr;
 		return &(Tail->data);
 	}
-	LinkedListIterator begin() {
-		LinkedListIterator result(Head);
+	LinkedListIterator<T> begin() {
+		LinkedListIterator<T> result(Head);
 		return result;
 	}
 	int Size() {
 		return size;
 	}
 	void deleteAll() {
-		Node<T>* ptr = head;
+		Node<T>* ptr = Head;
 		if (size == 0) return;
 		while (ptr->next != nullptr) {
 			Node<T>* nodeToDelete = ptr;
