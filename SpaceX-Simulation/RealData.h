@@ -11,6 +11,7 @@ const string startDate = "2010-06-04";
 const string endDate = "2018-03-24";
 int highestMissionNumber = 0;
 int highestBoosterNumber = 0;
+int highestCapsuleNumber = 0;
 
 //Used for interacting with Curl to download SpaceX api responses
 string executeSystemCommand(string cmd) {
@@ -166,7 +167,7 @@ void prepareBoosterForSimulation(Booster* booster) {
 	string status = getString(doc, "status");
 	if (status == "active") {
 		//Currently does not distinguish between Falcon Heavy and Falcon 9 cores. However, this does not matter because currently there are no flight active Falcon Heavy cores.
-		flightReadyFalcon9s.addBooster(booster);
+		flightActiveCores.addVehicle(booster);
 	}
 	else {
 		strcpy(status, booster->FlightStatus, 255);
@@ -176,6 +177,10 @@ void prepareBoosterForSimulation(Booster* booster) {
 void prepareCapsuleForSimulation(Dragon* capsule) {
 	Document doc;
 	string capsuleID(capsule->SerialNumber, 4);
+
+	int capsuleNum = atoi(capsuleID.substr(1, 3).c_str());
+	if (capsuleNum > highestCapsuleNumber) highestCapsuleNumber = capsuleNum;
+
 	string command = "curl -k -s ";
 	command += "\"https://api.spacexdata.com/v2/parts/caps/" + capsuleID + "\"";
 	string result = executeSystemCommand(command);
@@ -183,6 +188,9 @@ void prepareCapsuleForSimulation(Dragon* capsule) {
 	string description = getString(doc, "details");
 	if (description.size() > 0) {
 		strcpy(description, capsule->Description, 500);
+	}
+	if (getString(doc, "status") == "active") {
+		flightActiveDragons.addVehicle(capsule);
 	}
 }
 

@@ -1,15 +1,22 @@
 #pragma once
 #include <random>
 #include <time.h>
+#include <algorithm>
 
-#define FLIGHTS_TO_PERFORM 1000
+#define FLIGHTS_TO_PERFORM 2000
 #define AVERAGE_FLIGHTS_PER_MONTH 5
-#define AVERAGE_FALCON_HEAVY_FLIGHTS_PER_1000 50
-#define AVERAGE_SUCCESSFUL_LAUNCHES_PER_1000 989
-#define AVERAGE_SUCCESSFUL_LANDINGS_PER_1000 935
+#define AVERAGE_FALCON_HEAVY_FLIGHTS_PER_1000 75
+#define AVERAGE_SUCCESSFUL_LAUNCHES_PER_1000 996
+#define AVERAGE_SUCCESSFUL_LANDINGS_PER_1000 983
 #define BLOCK_V_MAX_REFLIGHTS 12
 #define LESSER_BLOCK_MAX_REFLIGHTS 2
 #define WEIGHT_OF_DRAGON 4200
+#define MINIMUM_PAYLOAD_WEIGHT 2000
+#define DRAGON_DAYS_BETWEEN_FLIGHTS 30
+#define MINIMUM_FLIGHT_READY_CORES 3
+#define MINIMUM_FLIGHT_READY_DRAGONS 2
+#define MAXIMUM_SECONDARY_PAYLOADS 3
+#define AVERAGE_FLIGHTS_WITH_SECONDARY_PAYLOADS_PER_1000 250
 
 
 int currentNumberOfFlights = 0;
@@ -42,25 +49,246 @@ struct PayloadName {
 	bool requiresDragon;
 	int destination; //-1 means choose any destination. Otherwise index of required destination.
 	int suffix;
+	bool mustBePrimary;
+	string getName() {
+		string result = name + to_string(suffix);
+		suffix++;
+		return result;
+	}
 };
 const int numOfPayloadNames=23;
-PayloadName payloadNames[] = { {"CRS-", "NASA (Cargo Resupply Services)", true, 2, 14}, {"CCS-", "NASA (Commercial Crew Services)", true, 2, 1}, {"Red Dragon-", "SpaceX", true, 4, 1}, {"SES-", "SES", false, 3, 12}, {"NROL-", "NROL", false, -1, 77}, {"Iridium NEXT ", "Iridium Communications", false, 1, 5}, {"STARLINK-", "SpaceX", false, 0, 1}, {"GovSat-", "GovSat", false, 3, 2}, {"X37B OTV-", "USAF", false, -1, 6}, {"Inmarsat-", "Inmarsat", false, 3, 6}, {"Space Tourism-", "SpaceX", true, -1, 1}, {"FormoSat-", "NSPO (Taiwan)", false, 6, 6 }, {"EchoStar ", "EchoStar", false, 3, 106}, {"BulgariaSat-", "Bulgaria Sat", false, 3, 2}, {"Amos-", "Spacecom", false, 3, 7}, {"JCSAT-", "SKY Perfect JCSAT Group", false, 3, 17}, {"KoreaSat ", "KT Corporation", false, 3, 6}, {"Thaicom ", "Thaicom", false, 3, 9}, {"AsiaSat ", "AsiaSat", false, 0, 9}, {"Jason-", "NASA", false, 1, 4}, {"Eutelsat ", "Eutelsat", false, 3, 118}, {"Microsat-", "SpaceX", false, 0, 3}, {"Cubesats ", "NRO", false, 0, 2} };
+PayloadName payloadNames[] = { {"CRS-", "NASA (Cargo Resupply Services)", true, 2, 14, true}, {"CCS-", "NASA (Commercial Crew Services)", true, 2, 1, true}, {"Red Dragon-", "SpaceX", true, 4, 1, true}, {"SES-", "SES", false, 3, 12, false}, {"NROL-", "NROL", false, -1, 77, false}, {"Iridium NEXT ", "Iridium Communications", false, 1, 5, false}, {"STARLINK-", "SpaceX", false, 0, 1, true}, {"GovSat-", "GovSat", false, 3, 2, false}, {"X37B OTV-", "USAF", false, -1, 6, true}, {"Inmarsat-", "Inmarsat", false, 3, 6, false}, {"Space Tourism-", "SpaceX", true, -1, 1, true}, {"FormoSat-", "NSPO (Taiwan)", false, 6, 6, false }, {"EchoStar ", "EchoStar", false, 3, 106, false}, {"BulgariaSat-", "Bulgaria Sat", false, 3, 2, false}, {"Amos-", "Spacecom", false, 3, 7, false}, {"JCSAT-", "SKY Perfect JCSAT Group", false, 3, 17, false}, {"KoreaSat ", "KT Corporation", false, 3, 6, false}, {"Thaicom ", "Thaicom", false, 3, 9, false}, {"AsiaSat ", "AsiaSat", false, 0, 9, false}, {"Jason-", "NASA", false, 1, 4, false}, {"Eutelsat ", "Eutelsat", false, 3, 118, false}, {"Microsat-", "SpaceX", false, -1, 3, false}, {"Cubesats ", "NRO", false, -1, 2, false} };
 
+bool chanceOutOf1000(int n, default_random_engine &e) {
+	uniform_int_distribution<int> dist(1, 1000);
+	int guess = dist(e);
+	return guess <= n;
+}
 
+bool chanceOutOf30(int n, default_random_engine &e) {
+	uniform_int_distribution<int> dist(1, 30);
+	int guess = dist(e);
+	return guess <= n;
+}
 
 void updateHangers() {
-	
+	flightActiveDragons.addVehicles(dragonsInSpace.getVehiclesOlderThan(today, DRAGON_DAYS_BETWEEN_FLIGHTS), today);
+	while (flightActiveCores.getNumOfVehicles() < MINIMUM_FLIGHT_READY_CORES) {
+		string boosterID = "B";
+		boosterID += to_string(highestBoosterNumber);
+		highestBoosterNumber++;
+		flightActiveCores.addVehicle(createBooster(boosterID, "Active", 5));
+	}
+	while (flightActiveDragons.getNumOfVehicles() < MINIMUM_FLIGHT_READY_DRAGONS) {
+		string capsuleID = "C";
+		capsuleID += to_string(highestCapsuleNumber);
+		highestCapsuleNumber++;
+		flightActiveDragons.addVehicle(createDragon(capsuleID, "Freshly made Dragon Capsule"));
+	}
+}
+
+bool generateMission(default_random_engine &e) {
+	//Step 1: Pick payload
+	uniform_int_distribution<int> payloadChoices(0, numOfPayloadNames - 1);
+	int payloadChoice = payloadChoices(e);
+	string payloadName = payloadNames[payloadChoice].getName();
+	//Step 2: Pick destination orbit
+	int destination;
+	if (payloadNames[payloadChoice].destination == -1) {
+		uniform_int_distribution<int> destinationChoices(0, numOfDestinations - 1);
+		destination = destinationChoices(e);
+	}
+	else {
+		destination = payloadNames[payloadChoice].destination;
+	}
+	//Step 3: Pick launch site
+	int launchSite;
+	if (destinations[destination].requiredLaunchSite == -1) {
+		uniform_int_distribution<int> launchSiteChoices(0, numOfLaunchSites - 1);
+		do {
+			launchSite = launchSiteChoices(e);
+		} while (launchSite == destinations[destination].excludedLaunchSite);
+	}
+	else {
+		launchSite = destinations[destination].requiredLaunchSite;
+	}
+	//Step 4: Choose launch vehicle configuration
+	bool falconHeavy = chanceOutOf1000(AVERAGE_FALCON_HEAVY_FLIGHTS_PER_1000, e);
+	//Step 5: Figure out if mission is possible with current configuration based on payload mass
+	int dragonMass = payloadNames[payloadChoice].requiresDragon ? WEIGHT_OF_DRAGON : 0;
+	if (!falconHeavy) {
+		int minimumPayloadMass = destinations[destination].max9Payload - dragonMass;
+		if (minimumPayloadMass < MINIMUM_PAYLOAD_WEIGHT) return generateMission(e); //Start over
+	}
+	//Step 6: Choose mass of primary payload
+	int maxMass = falconHeavy ? destinations[destination].maxHPayload : destinations[destination].max9Payload;
+	maxMass -= dragonMass;
+	uniform_int_distribution<int> massChoices(MINIMUM_PAYLOAD_WEIGHT, maxMass);
+	int primaryMass = massChoices(e)+dragonMass;
+	//Step 7: Assign Dragon Capsule if needed
+	Dragon* dragonCapsule = nullptr;
+	if (payloadNames[payloadChoice].requiresDragon) {
+		dragonCapsule = flightActiveDragons.getRandomVehicles(1, e)[0];
+	}
+	//Step 8: Assign Core/s
+	vector<Booster*> cores;
+	if (falconHeavy) {
+		cores = flightActiveCores.getRandomVehicles(3, e);
+	}
+	else {
+		cores = flightActiveCores.getRandomVehicles(1, e);
+	}
+	//Step 9: Get/Create launchsite reference
+	LaunchSite* missionLaunchSite = findOrCreateLaunchSite(launchSites[launchSite].name, launchSites[launchSite].description);
+	//Step 10: Create new mission reference
+	Mission* mission = createMission(highestMissionNumber, payloadName, "", today, missionLaunchSite);
+	highestMissionNumber++;
+	//Step 11: Create primary payload reference
+	vector<Payload*> payloads;
+	payloads.push_back(createPayload(payloadName, destinations[destination].name, primaryMass, payloadNames[payloadChoice].supplier, "", dragonCapsule, mission));
+	//Step 12: Add secondary payload references
+	if (chanceOutOf1000(AVERAGE_FLIGHTS_WITH_SECONDARY_PAYLOADS_PER_1000, e)) {
+		maxMass += dragonMass;
+		int secondaryPayloads = 0;
+		while (maxMass - primaryMass > MINIMUM_PAYLOAD_WEIGHT && secondaryPayloads<MAXIMUM_SECONDARY_PAYLOADS) {
+			//Step 12.1: Choose new payload that does not require dragon and can be sent to the same destination
+			int secondaryPayloadChoice;
+			do {
+				secondaryPayloadChoice = payloadChoices(e);
+			} while (payloadNames[secondaryPayloadChoice].requiresDragon || payloadNames[secondaryPayloadChoice].mustBePrimary || (payloadNames[secondaryPayloadChoice].destination != -1 && payloadNames[secondaryPayloadChoice].destination != payloadNames[payloadChoice].destination));
+			//Step 12.2: Choose secondary payload's mass
+			uniform_int_distribution<int> secondaryPayloadMassChoices(MINIMUM_PAYLOAD_WEIGHT, maxMass - primaryMass);
+			int secondaryPayloadMass = secondaryPayloadMassChoices(e);
+			//Step 12.3: Create secondary payload reference
+			payloads.push_back(createPayload(payloadNames[secondaryPayloadChoice].getName(), destinations[destination].name, secondaryPayloadMass, payloadNames[secondaryPayloadChoice].supplier, "", dragonCapsule, mission));
+			//Step 12.4: Reduce total payload capacity
+			primaryMass += secondaryPayloadMass;
+
+			secondaryPayloads++;
+		}
+	}
+	//Step 13: Select landing sites
+	vector<string> sites;
+	for (int i = 0; i < numberOfLandingSites; i++) {
+		if (launchSites[launchSite].landingSitesAvailable[i]) {
+			sites.push_back(landingSites[i]);
+		}
+	}
+	random_shuffle(sites.begin(), sites.end());
+	//Step 14: Launch!!!
+	bool successfulLaunch = chanceOutOf1000(AVERAGE_SUCCESSFUL_LAUNCHES_PER_1000, e);
+	//Step 15: Land!!!
+	for (auto i : cores) {
+		i->flights++;
+		string landingOutcome;
+		if (successfulLaunch) {
+			if (chanceOutOf1000(AVERAGE_SUCCESSFUL_LANDINGS_PER_1000, e)) {
+				landingOutcome = "Success. Core recovered nominally.";
+				if ((i->BlockNumber == 5 && i->flights < BLOCK_V_MAX_REFLIGHTS) || (i->BlockNumber != 5 && i->flights < LESSER_BLOCK_MAX_REFLIGHTS)) {
+					flightActiveCores.addVehicle(i);
+				}
+				else {
+					strcpy("Retired", i->FlightStatus, 255);
+				}
+			}
+			else {
+				landingOutcome = "Rapid unscheduled dissasembly.";
+				strcpy("Destroyed", i->FlightStatus, 255);
+			}
+		}
+		else {
+			landingOutcome = "Precluded. Core destroyed during failed launch.";
+			strcpy("Destroyed", i->FlightStatus, 255);
+		}
+		flownBy* flight = createFlownBy(i, mission, sites.back(), landingOutcome);
+		sites.pop_back();
+	}
+	//Step 16: Update payloads
+	for (auto i : payloads) {
+		if (successfulLaunch) {
+			strcpy("Complete success.", i->MissionOutcome, 255);
+		}
+		else {
+			strcpy("Mission failed. Payload destroyed.", i->MissionOutcome, 255);
+		}
+	}
+	if (payloadNames[payloadChoice].requiresDragon && successfulLaunch) {
+		dragonsInSpace.addVehicle(dragonCapsule, today);
+		string description = "Last flown on " + payloadName + " to " + destinations[destination].name + " on "+to_string(today)+".";
+		strcpy(description, dragonCapsule->Description, 500);
+	}
+	else if (payloadNames[payloadChoice].requiresDragon) {
+		string description = "Destroyed on failed " + payloadName + " launch to " + destinations[destination].name + " on " + to_string(today) + ".";
+		strcpy(description, dragonCapsule->Description, 500);
+	}
+	//Step 17: Create mission description
+	string description;
+	if (successfulLaunch) {
+		description += "On " + to_string(today) + " a SpaceX ";
+		description += falconHeavy ? "Falcon Heavy " : "Falcon 9 ";
+		description += "lifted off from " + launchSites[launchSite].description + " carrying " + payloadNames[payloadChoice].supplier + "'s " + payloadName + " payload to " + destinations[destination].name + ".";
+		if (payloads.size() > 1) {
+			description += " Secondary payloads also included in this flight are: ";
+			for (int i = 1; i < payloads.size(); i++) {
+				description += payloads[i]->Title;
+				if (i == payloads.size() - 1) {
+					description += ".";
+				}
+				else if (payloads.size()>3 && i == payloads.size() - 2) {
+					description += ", and ";
+				}
+				else {
+					description += ", ";
+				}
+			}
+		}
+		description += " Complete mission success.";
+	}
+	else {
+		description += "On " + to_string(today) + " a SpaceX ";
+		description += falconHeavy ? "Falcon Heavy " : "Falcon 9 ";
+		description += "exploded seconds after lifting off from " + launchSites[launchSite].description + " carrying " + payloadNames[payloadChoice].supplier + "'s " + payloadName + " payload to " + destinations[destination].name + ".";
+		if (payloads.size() > 1) {
+			description += " Secondary payloads also included in this flight are: ";
+			for (int i = 1; i < payloads.size(); i++) {
+				description += payloads[i]->Title;
+				if (i == payloads.size() - 1) {
+					description += ".";
+				}
+				else if (payloads.size()>3 && i == payloads.size() - 2) {
+					description += ", and ";
+				}
+				else {
+					description += ", ";
+				}
+			}
+		}
+		description += " Mission failed.";
+		if (payloadNames[payloadChoice].requiresDragon && payloadChoice != 0) {
+			description += " No survivors.";
+		}
+	}
+
+	cout << description << endl;
+
+	strcpy(description, mission->Description, 500);
+
+	return true;
 }
 
 void runSimulation() {
 	highestMissionNumber++;
 	highestBoosterNumber++;
+	highestCapsuleNumber++;
 
 	default_random_engine e;
 
 	while (currentNumberOfFlights < FLIGHTS_TO_PERFORM) {
-		
 		updateHangers();
+		if (chanceOutOf30(AVERAGE_FLIGHTS_PER_MONTH, e)) { //Let's go to space today!! :)
+			generateMission(e);
+			currentNumberOfFlights++;
+		}
 		today += 1; //Advance time forward by one day
 	}
 }

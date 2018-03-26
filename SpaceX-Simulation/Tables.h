@@ -76,6 +76,7 @@ struct Booster {
 		strmov(other.BoosterID, BoosterID, 5);
 		strmov(other.FlightStatus, FlightStatus, 255);
 		BlockNumber = other.BlockNumber;
+		flights = other.flights;
 	}
 };
 LinkedList<Booster> Boosters;
@@ -254,6 +255,7 @@ struct Date { //Meta-Structure for holding dates
 				}
 			}
 		}
+		return result;
 	}
 	void operator+=(int days) {
 		Date result = operator+(days);
