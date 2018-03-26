@@ -246,7 +246,7 @@ struct Date { //Meta-Structure for holding dates
 		Date result = *this;
 		for (int i = 0; i < days; i++) {
 			result.day++;
-			if (day > getDaysInMonth(result.month, result.year)) {
+			if (result.day > getDaysInMonth(result.month, result.year)) {
 				result.day = 1;
 				result.month++;
 				if (result.month > 12) {
