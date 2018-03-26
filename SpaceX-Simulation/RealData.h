@@ -157,6 +157,8 @@ void prepareBoosterForSimulation(Booster* booster) {
 	Document doc;
 	string boosterID(booster->BoosterID, 5);
 
+	cout << "Downloading detailed information on booster " << boosterID << "..." << endl;
+
 	int boosterNum = atoi(boosterID.substr(1, 4).c_str());
 	if (boosterNum > highestBoosterNumber) highestBoosterNumber = boosterNum;
 
@@ -178,6 +180,8 @@ void prepareCapsuleForSimulation(Dragon* capsule) {
 	Document doc;
 	string capsuleID(capsule->SerialNumber, 4);
 
+	cout << "Downloading detailed information on Dragon " << capsuleID << "..." << endl;
+
 	int capsuleNum = atoi(capsuleID.substr(1, 3).c_str());
 	if (capsuleNum > highestCapsuleNumber) highestCapsuleNumber = capsuleNum;
 
@@ -195,14 +199,19 @@ void prepareCapsuleForSimulation(Dragon* capsule) {
 }
 
 void getRealData() {
+	cout << "Attempting to download mission manifest..." << endl;
 	Document doc;
 	string rawJson = downloadMissionData();
 	doc.Parse(rawJson.c_str());
 	if (doc.IsArray()) {
 		Value root = doc.GetArray();
 		for (int i = 0; i < root.Size(); i++) {
+			cout << "Parsing mission #" << (i + 1) << " from manifest..." << endl;
 			parseMissionData(root[i]);
 		}
+	}
+	else {
+		cout << "Failed to download mission manifest." << endl;
 	}
 	for (auto i = Boosters.begin(); i.hasNext(); i.operator++()) {
 		Booster* b = &i;

@@ -488,3 +488,45 @@ void cleanAllData() {
 	Dragons.deleteAll();
 	LaunchSites.deleteAll();
 }
+
+void writeResultsToFiles() {
+	cout << "Outputing results to files..." << endl;
+
+	ofstream boosterFile("output/Booster.txt", ios::out);
+	if (boosterFile) {
+		boosterFile << listBoosters();
+	}
+	boosterFile.close();
+
+	ofstream flownByFile("output/flownBy.txt", ios::out);
+	if (flownByFile) {
+		flownByFile << listflownBys();
+	}
+	flownByFile.close();
+
+	ofstream MissionFile("output/Mission.txt", ios::out);
+	if (MissionFile) {
+		MissionFile << listMissions();
+	}
+	MissionFile.close();
+
+	ofstream PayloadFile("output/Payload.txt", ios::out);
+	if (PayloadFile) {
+		PayloadFile << listPayloads();
+	}
+	PayloadFile.close();
+
+	ofstream DragonFile("output/Dragon.txt", ios::out);
+	if (DragonFile) {
+		DragonFile << listDragons();
+	}
+	DragonFile.close();
+
+	ofstream LaunchSiteFile("output/LaunchSite.txt", ios::out);
+	if (LaunchSiteFile) {
+		LaunchSiteFile << listLaunchSites();
+	}
+	LaunchSiteFile.close();
+
+	cout << "Done." << endl;
+}

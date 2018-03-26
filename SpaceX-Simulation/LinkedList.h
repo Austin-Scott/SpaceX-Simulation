@@ -26,7 +26,7 @@ public:
 		return &currentNode->data;
 	}
 	bool hasNext() {
-		return currentNode!=nullptr && currentNode->next != nullptr;
+		return currentNode!=nullptr;
 	}
 	LinkedListIterator<T> operator+(int offset) {
 		LinkedListIterator<T> result(currentNode);

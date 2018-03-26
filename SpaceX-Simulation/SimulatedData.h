@@ -75,13 +75,13 @@ void updateHangers() {
 	flightActiveDragons.addVehicles(dragonsInSpace.getVehiclesOlderThan(today, DRAGON_DAYS_BETWEEN_FLIGHTS), today);
 	while (flightActiveCores.getNumOfVehicles() < MINIMUM_FLIGHT_READY_CORES) {
 		string boosterID = "B";
-		boosterID += to_string(highestBoosterNumber);
+		boosterID += padWithZeros(to_string(highestBoosterNumber), 4);
 		highestBoosterNumber++;
 		flightActiveCores.addVehicle(createBooster(boosterID, "Active", 5));
 	}
 	while (flightActiveDragons.getNumOfVehicles() < MINIMUM_FLIGHT_READY_DRAGONS) {
 		string capsuleID = "C";
-		capsuleID += to_string(highestCapsuleNumber);
+		capsuleID += padWithZeros(to_string(highestCapsuleNumber), 3);
 		highestCapsuleNumber++;
 		flightActiveDragons.addVehicle(createDragon(capsuleID, "Freshly made Dragon Capsule"));
 	}
@@ -269,14 +269,14 @@ bool generateMission(default_random_engine &e) {
 		}
 	}
 
-	cout << description << endl;
-
 	strcpy(description, mission->Description, 500);
 
 	return true;
 }
 
 void runSimulation() {
+	cout << "Starting simulation mode..." << endl;
+
 	highestMissionNumber++;
 	highestBoosterNumber++;
 	highestCapsuleNumber++;
@@ -286,9 +286,11 @@ void runSimulation() {
 	while (currentNumberOfFlights < FLIGHTS_TO_PERFORM) {
 		updateHangers();
 		if (chanceOutOf30(AVERAGE_FLIGHTS_PER_MONTH, e)) { //Let's go to space today!! :)
+			cout << "Generating simulated mission #" << highestMissionNumber << "..." << endl;
 			generateMission(e);
 			currentNumberOfFlights++;
 		}
 		today += 1; //Advance time forward by one day
 	}
+	cout << "Simulation complete." << endl;
 }

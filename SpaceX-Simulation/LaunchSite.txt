@@ -1,7 +1,0 @@
-ccafs_slc_40|Cape Canaveral Air Force Station Space Launch Complex 40
-ccafs_slc_40|Cape Canaveral Air Force Station Space Launch Complex 40
-vafb_slc_4e|Vandenberg Air Force Base Space Launch Complex 4E
-vafb_slc_4e|Vandenberg Air Force Base Space Launch Complex 4E
-ksc_lc_39a|Kennedy Space Center Historic Launch Complex 39A
-ksc_lc_39a|Kennedy Space Center Historic Launch Complex 39A
-stls|SpaceX South Texas Launch Site
