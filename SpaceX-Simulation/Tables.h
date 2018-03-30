@@ -33,6 +33,19 @@ string V() {
 string T() {
 	return to_string(TupleDeliminator);
 }
+string sanitize(string dirty) {
+	string result = "";
+	for (int i = 0; i < dirty.size(); i++) {
+		if (dirty[i] == '\'') {
+			result.push_back('\'');
+			result.push_back('\'');
+		}
+		else {
+			result.push_back(dirty[i]);
+		}
+	}
+	return result;
+}
 void strcpy(string src, char* dest, int n, bool varlength=true) {
 	int end = varlength ? n - 1 : n;
 	for (int i = 0; i < end; i++) {
@@ -80,7 +93,7 @@ struct Booster : public Relationship {
 	}
 	virtual string insertTuple() {
 		string result = "insert into " + getName() + " values ( '" + to_string(BoosterID, 5) + "', ";
-		result = FlightStatus[0] == '\0' ? result + "NULL, " : result + "'" + to_string(FlightStatus)+ "', ";
+		result = FlightStatus[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(FlightStatus))+ "', ";
 		result = BlockNumber == INT_MIN ? result + "NULL" : result + to_string(BlockNumber);
 		result += ")";
 		return result;
@@ -131,8 +144,8 @@ struct Dragon : public Relationship {
 		strmov(other.Description, Description, 500);
 	}
 	virtual string insertTuple() {
-		string result = "insert into " + getName() + " values ( '" + to_string(SerialNumber) + "', ";
-		result = Description[0] == '\0' ? result + "NULL" : result + "'" + to_string(Description) + "'";
+		string result = "insert into " + getName() + " values ( '" + to_string(SerialNumber, 4) + "', ";
+		result = Description[0] == '\0' ? result + "NULL" : result + "'" + sanitize(to_string(Description)) + "'";
 		result += ")";
 		return result;
 	}
@@ -180,7 +193,7 @@ struct LaunchSite : public Relationship {
 	}
 	virtual string insertTuple() {
 		string result = "insert into " + getName() + " values ( '" + to_string(Name) + "', ";
-		result = Location[0] == '\0' ? result + "NULL" : result + "'" + to_string(Location) + "'";
+		result = Location[0] == '\0' ? result + "NULL" : result + "'" + sanitize(to_string(Location)) + "'";
 		result += ")";
 		return result;
 	}
@@ -386,8 +399,8 @@ struct Mission : public Relationship {
 	}
 	virtual string insertTuple() {
 		string result = "insert into " + getName() + " values ( " + to_string(MissionNumber) + ", ";
-		result = Title[0] == '\0' ? result + "NULL, " : result + "'" + to_string(Title) + "', ";
-		result = Description[0] == '\0' ? result + "NULL, " : result + "'" + to_string(Description) + "', ";
+		result = Title[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(Title)) + "', ";
+		result = Description[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(Description)) + "', ";
 		result += "'" + to_string(date) + "', ";
 		result = LaunchSiteName == nullptr ? result + "NULL" : result + "'" + to_string(LaunchSiteName->Name) + "'";
 		result += ")";
@@ -443,8 +456,8 @@ struct flownBy : public Relationship {
 	}
 	virtual string insertTuple() {
 		string result = "insert into " + getName() + " values ( '" + to_string(BoosterID->BoosterID, 5) + "', " + to_string(MissionNumber->MissionNumber) + ", ";
-		result = LandingSite[0] == '\0' ? result + "NULL, " : result + "'" + to_string(LandingSite) + "', ";
-		result = LandingOutcome[0] == '\0' ? result + "NULL" : result + "'" + to_string(LandingOutcome) + "'";
+		result = LandingSite[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(LandingSite)) + "', ";
+		result = LandingOutcome[0] == '\0' ? result + "NULL" : result + "'" + sanitize(to_string(LandingOutcome)) + "'";
 		result += ")";
 		return result;
 	}
@@ -503,11 +516,11 @@ struct Payload : public Relationship {
 		MissionNumber = other.MissionNumber;
 	}
 	virtual string insertTuple() {
-		string result = "insert into " + getName() + " values ( '" + to_string(Title) + "', ";
-		result = Orbit[0] == '\0' ? result + "NULL, " : result + "'" + to_string(Orbit) + "', ";
+		string result = "insert into " + getName() + " values ( '" + sanitize(to_string(Title)) + "', ";
+		result = Orbit[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(Orbit)) + "', ";
 		result = PayloadMass == INT_MIN ? result + "NULL, " : result + to_string(PayloadMass) + ", ";
-		result = Supplier[0] == '\0' ? result + "NULL, " : result + "'" + to_string(Supplier) + "', ";
-		result = MissionOutcome[0] == '\0' ? result + "NULL, " : result + "'" + to_string(MissionOutcome) + "', ";
+		result = Supplier[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(Supplier)) + "', ";
+		result = MissionOutcome[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(MissionOutcome)) + "', ";
 		result = DragonSerial == nullptr ? result + "NULL, " : result + "'" + to_string(DragonSerial->SerialNumber, 4) + "', ";
 		result += to_string(MissionNumber->MissionNumber) + ")";
 		return result;
@@ -605,8 +618,10 @@ string dropTable(string name) {
 }
 
 void updateDatabase(string address, string schema, string username, string password) {
+	cout << "Connecting to database at " << address << "..." << endl;
 	connectToDatabase(address, schema, username, password);
 
+	cout << "Dropping any pre-existing tables..." << endl;
 	//Drop tables if they exist
 	executeSQL(dropTable(flownBy::getName()));
 	executeSQL(dropTable(Payload::getName()));
@@ -615,6 +630,7 @@ void updateDatabase(string address, string schema, string username, string passw
 	executeSQL(dropTable(Mission::getName()));
 	executeSQL(dropTable(LaunchSite::getName()));
 
+	cout << "Creating tables..." << endl;
 	//Re-create the dropped tables
 	executeSQL(Booster::createTable());
 	executeSQL(Dragon::createTable());
@@ -624,24 +640,32 @@ void updateDatabase(string address, string schema, string username, string passw
 	executeSQL(Payload::createTable());
 
 	//Populate the database
+	cout << "Inserting tuples into " << Booster::getName() << "..." << endl;
 	for (auto iter = Boosters.begin(); iter.hasNext(); iter.operator++()) {
 		executeSQL((&iter)->insertTuple());
 	}
+	cout << "Inserting tuples into " << Dragon::getName() << "..." << endl;
 	for (auto iter = Dragons.begin(); iter.hasNext(); iter.operator++()) {
 		executeSQL((&iter)->insertTuple());
 	}
+	cout << "Inserting tuples into " << LaunchSite::getName() << "..." << endl;
 	for (auto iter = LaunchSites.begin(); iter.hasNext(); iter.operator++()) {
 		executeSQL((&iter)->insertTuple());
 	}
+	cout << "Inserting tuples into " << Mission::getName() << "..." << endl;
 	for (auto iter = Missions.begin(); iter.hasNext(); iter.operator++()) {
 		executeSQL((&iter)->insertTuple());
 	}
+	cout << "Inserting tuples into " << flownBy::getName() << "..." << endl;
 	for (auto iter = flownBys.begin(); iter.hasNext(); iter.operator++()) {
 		executeSQL((&iter)->insertTuple());
 	}
+	cout << "Inserting tuples into " << Payload::getName() << "..." << endl;
 	for (auto iter = Payloads.begin(); iter.hasNext(); iter.operator++()) {
 		executeSQL((&iter)->insertTuple());
 	}
+
+	cout << "Complete. Disconnecting from database." << endl;
 
 	disconnectFromDatabase();
 }
