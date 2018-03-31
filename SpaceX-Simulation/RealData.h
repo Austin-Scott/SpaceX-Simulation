@@ -71,13 +71,13 @@ int getInt(const Value &parent, string name) {
 	return result;
 }
 
-bool getBool(const Value &parent, string name) {
-	bool result = false;
+int getBool(const Value &parent, string name) {
+	int result = -1;
 	auto iter = parent.FindMember(name.c_str());
 	if (iter != parent.MemberEnd()) {
 		auto &member = iter->value;
 		if (!member.IsNull() && member.IsBool()) {
-			result = member.GetBool();
+			result = member.GetBool()?1:0;
 		}
 	}
 	return result;
@@ -88,7 +88,7 @@ void parseMissionData(const Value &mission) {
 	if (flight_number > highestMissionNumber) highestMissionNumber = flight_number;
 	Date launch_date(getString(mission, "launch_date_utc").substr(0,10));
 	string Description = getString(mission, "details");
-	bool launch_success = getBool(mission, "launch_success");
+	int launch_success = getBool(mission, "launch_success");
 	string rocket_id;
 	string Title; //Assigned by name of primary payload
 	string site_id;
@@ -115,15 +115,19 @@ void parseMissionData(const Value &mission) {
 					for (int i = 0; i < cores_value.Size(); i++) {
 						string core_serial = getString(cores_value[i], "core_serial");
 						int block = getInt(cores_value[i], "block");
-						bool land_success = getBool(cores_value[i], "land_success");
+						int land_success = getBool(cores_value[i], "land_success");
 						string landing_site = getString(cores_value[i], "landing_vehicle");
 						Booster* booster = findBooster(core_serial);
 						if (booster == nullptr) {
-							booster = createBooster(core_serial, land_success ? "Flight Operational" : "Destroyed", block);
+							string status = "";
+							if (land_success == 0) status = "Destroyed";
+							else if (land_success == 1) status = "Flight Operational";
+							else status = "Expended";
+							booster = createBooster(core_serial, status, block);
 							booster->flights = 0;
 						}
 						booster->flights++;
-						createFlownBy(booster, current_mission, landing_site, land_success ? "Booster recovered nominally." : "Rapid unscheduled disassembly.");
+						createFlownBy(booster, current_mission, landing_site, land_success==1 ? "Booster recovered nominally." : "Booster destroyed");
 					}
 				}
 			}
@@ -142,7 +146,7 @@ void parseMissionData(const Value &mission) {
 						string cap_serial = getString(payloads_value[i], "cap_serial");
 						Dragon* capsule = findDragon(cap_serial);
 						if (capsule == nullptr && cap_serial.size()>0) {
-							capsule = createDragon(cap_serial, "Dragon Capsule");
+							capsule = createDragon(cap_serial, "Dragon Capsule", 1);
 						}
 						string supplier;
 						auto customers = payloads_value[i].FindMember("customers");
@@ -156,7 +160,7 @@ void parseMissionData(const Value &mission) {
 							Title = payload_id;
 							strcpy(Title, current_mission->Title, 255);
 						}
-						createPayload(payload_id, orbit, payload_mass, supplier, launch_success ? "Complete success." : "Mission failed.", capsule, current_mission);
+						createPayload(payload_id, orbit, payload_mass, supplier, launch_success==1 ? "Complete success." : "Mission failed.", capsule, current_mission);
 					}
 				}
 			}
@@ -209,6 +213,9 @@ void prepareCapsuleForSimulation(Dragon* capsule) {
 	}
 	if (getString(doc, "status") == "active") {
 		flightActiveDragons.addVehicle(capsule);
+	}
+	else {
+		capsule->FlightActive = 0;
 	}
 }
 

@@ -72,6 +72,16 @@ bool stringcmp(string a, char* b, int n, bool varlength = true) {
 	}
 	return false;
 }
+string boolToString(int boolean) {
+	if (boolean == 1) return "true";
+	else if (boolean == 0) return "false";
+	else return "NULL";
+}
+string boolToListString(int boolean) {
+	if (boolean == 1) return "1";
+	else if (boolean == 0) return "0";
+	else return NullIndicator;
+}
 
 struct Booster : public Relationship {
 	char BoosterID[5]; //Primary Key
@@ -134,6 +144,7 @@ string listBoosters() {
 struct Dragon : public Relationship {
 	char SerialNumber[4]; //Primary Key
 	char Description[500];
+	int FlightActive; //-1=null, 0=false, 1=true
 
 	Dragon()  {}
 	Dragon(const Dragon &other)  {
@@ -142,23 +153,26 @@ struct Dragon : public Relationship {
 	void operator=(const Dragon &other) {
 		strmov(other.SerialNumber, SerialNumber, 4);
 		strmov(other.Description, Description, 500);
+		FlightActive = other.FlightActive;
 	}
 	virtual string insertTuple() {
 		string result = "insert into " + getName() + " values ( '" + to_string(SerialNumber, 4) + "', ";
-		result = Description[0] == '\0' ? result + "NULL" : result + "'" + sanitize(to_string(Description)) + "'";
+		result = Description[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(Description)) + "', ";
+		result += boolToString(FlightActive);
 		result += ")";
 		return result;
 	}
 	static string createTable() {
-		return "create table " + getName() + " ( SerialNumber char(4) not null, Description varchar(500), primary key(SerialNumber) )";
+		return "create table " + getName() + " ( SerialNumber char(4) not null, Description varchar(500), FlightActive boolean, primary key(SerialNumber) )";
 	}
 	static string getName() { return "Dragon";  }
 };
 LinkedList<Dragon> Dragons;
-Dragon* createDragon(string SerialNumber, string Description) {
+Dragon* createDragon(string SerialNumber, string Description, int FlightActive) {
 	Dragon d;
 	strcpy(SerialNumber, d.SerialNumber, 4, false);
 	strcpy(Description, d.Description, 500);
+	d.FlightActive = FlightActive;
 	Dragons.push_back(d);
 	return Dragons.back();
 }
@@ -174,7 +188,7 @@ string listDragons() {
 	string result = "";
 	for (auto i = Dragons.begin(); i.hasNext(); i.operator++()) {
 		auto p = &i;
-		result += to_string(p->SerialNumber, 4) + V() + to_string(p->Description) + T();
+		result += to_string(p->SerialNumber, 4) + V() + to_string(p->Description) + V() + boolToListString(p->FlightActive) + T();
 	}
 	return result;
 }

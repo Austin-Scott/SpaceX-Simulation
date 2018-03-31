@@ -83,7 +83,7 @@ void updateHangers() {
 		string capsuleID = "C";
 		capsuleID += padWithZeros(to_string(highestCapsuleNumber), 3);
 		highestCapsuleNumber++;
-		flightActiveDragons.addVehicle(createDragon(capsuleID, "Freshly made Dragon Capsule"));
+		flightActiveDragons.addVehicle(createDragon(capsuleID, "Freshly made Dragon Capsule", 1));
 	}
 }
 
@@ -215,6 +215,7 @@ bool generateMission(default_random_engine &e) {
 	if (payloadNames[payloadChoice].requiresDragon && successfulLaunch) {
 		if (payloadChoice == 2) {
 			string description = "Sent to Mars on " + to_string(today) + " with no hope to return.";
+			dragonCapsule->FlightActive = 0;
 			strcpy(description, dragonCapsule->Description, 500);
 		}
 		else {
@@ -225,6 +226,7 @@ bool generateMission(default_random_engine &e) {
 	}
 	else if (payloadNames[payloadChoice].requiresDragon) {
 		string description = "Destroyed on failed " + payloadName + " launch to " + destinations[destination].name + " on " + to_string(today) + ".";
+		dragonCapsule->FlightActive = 0;
 		strcpy(description, dragonCapsule->Description, 500);
 	}
 	//Step 17: Create mission description
