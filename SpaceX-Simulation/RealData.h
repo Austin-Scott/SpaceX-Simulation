@@ -162,17 +162,20 @@ void prepareBoosterForSimulation(Booster* booster) {
 	int boosterNum = atoi(boosterID.substr(1, 4).c_str());
 	if (boosterNum > highestBoosterNumber) highestBoosterNumber = boosterNum;
 
-	string command = "curl -k -s ";
-	command += "\"https://api.spacexdata.com/v2/parts/cores/" + boosterID + "\"";
-	string result = executeSystemCommand(command);
-	doc.Parse(result.c_str());
-	string status = getString(doc, "status");
-	if (status == "active") {
-		//Currently does not distinguish between Falcon Heavy and Falcon 9 cores. However, this does not matter because currently there are no flight active Falcon Heavy cores.
-		flightActiveCores.addVehicle(booster);
-	}
-	else {
-		strcpy(status, booster->FlightStatus, 255);
+	if (booster->BlockNumber != 0) {
+
+		string command = "curl -k -s ";
+		command += "\"https://api.spacexdata.com/v2/parts/cores/" + boosterID + "\"";
+		string result = executeSystemCommand(command);
+		doc.Parse(result.c_str());
+		string status = getString(doc, "status");
+		if (status == "active") {
+			//Currently does not distinguish between Falcon Heavy and Falcon 9 cores. However, this does not matter because currently there are no flight active Falcon Heavy cores.
+			flightActiveCores.addVehicle(booster);
+		}
+		else {
+			strcpy(status, booster->FlightStatus, 255);
+		}
 	}
 }
 
@@ -198,7 +201,40 @@ void prepareCapsuleForSimulation(Dragon* capsule) {
 	}
 }
 
+void addFalconOneLaunches() {
+	LaunchSite* site = createLaunchSite("kwajalein_atoll", "Kwajalein Atoll Omelek Island");
+	//Flight One
+	Mission* flightOne = createMission(1, "Falcon One Flight One", "Engine failure at 33 seconds and loss of vehicle", Date("2006-03-24"), site);
+	Booster* booster1 = createBooster("00001", "Destroyed", 0);
+	flownBy* f1 = createFlownBy(booster1, flightOne, "", "");
+	Payload* p1 = createPayload("FalconSAT-2", "LEO", 20, "DARPA", "Failed", nullptr, flightOne);
+	//Flight Two
+	Mission* flightTwo = createMission(2, "Falcon One Flight Two", "Successful first stage burn and transition to second stage, maximum altitude 289 km, Premature engine shutdown at T+7 min 30 s, Failed to reach orbit, Failed to recover first stage", Date("2007-03-21"), site);
+	Booster* booster2 = createBooster("00002", "Expended", 0);
+	flownBy* f2 = createFlownBy(booster2, flightTwo, "", "");
+	Payload* p2 = createPayload("DemoSAT", "LEO", INT_MIN, "DARPA", "Failed", nullptr, flightTwo);
+	//Flight Three
+	Mission* flightThree = createMission(3, "Falcon One Flight Three", "Residual stage 1 thrust led to collision between stage 1 and stage 2", Date("2008-08-02"), site);
+	Booster* booster3 = createBooster("00003", "Destroyed", 0);
+	flownBy* f3 = createFlownBy(booster3, flightThree, "", "");
+	Payload* p3 = createPayload("Trailblazer", "LEO", INT_MIN, "NASA", "Failed", nullptr, flightThree);
+	Payload* p4 = createPayload("PRESat", "LEO", INT_MIN, "ORS", "Failed", nullptr, flightThree);
+	//Flight Four
+	Mission* flightFour = createMission(4, "Falcon One Flight Four", "Ratsat was carried to orbit on the first successful orbital launch of any privately funded and developed, liquid-propelled carrier rocket, the SpaceX Falcon 1", Date("2008-09-28"), site);
+	Booster* booster4 = createBooster("00004", "Expended", 0);
+	flownBy* f4 = createFlownBy(booster4, flightFour, "", "");
+	Payload* p5 = createPayload("RatSat", "LEO", 165, "SpaceX", "Success", nullptr, flightFour);
+	//Flight Five
+	Mission* flightFive = createMission(5, "Falcon One Flight Five", "Fifth and final flight of Falcon One", Date("2009-07-13"), site);
+	Booster* booster5 = createBooster("00005", "Expended", 0);
+	flownBy* f5 = createFlownBy(booster5, flightFive, "", "");
+	Payload* p6 = createPayload("RazakSAT", "LEO", 200, "ATSB", "Success", nullptr, flightFive);
+}
+
 void getRealData() {
+	cout << "Adding Falcon One flights..." << endl;
+	addFalconOneLaunches();
+
 	cout << "Attempting to download mission manifest..." << endl;
 	Document doc;
 	string rawJson = downloadMissionData();
