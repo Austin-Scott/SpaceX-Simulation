@@ -100,7 +100,7 @@ void parseMissionData(const Value &mission) {
 		site_description = getString(launch_site_value, "site_name_long");
 	}
 	LaunchSite* current_launch_site = findOrCreateLaunchSite(site_id, site_description);
-	Mission* current_mission = createMission(flight_number, "TBD", Description, launch_date, current_launch_site);
+	Mission* current_mission = createMission(flight_number, "TBD", Description, launch_date, current_launch_site, launch_success);
 	auto rocket = mission.FindMember("rocket");
 	if (rocket != mission.MemberEnd()) {
 		auto &rocket_value = rocket->value;
@@ -222,28 +222,28 @@ void prepareCapsuleForSimulation(Dragon* capsule) {
 void addFalconOneLaunches() {
 	LaunchSite* site = createLaunchSite("kwajalein_atoll", "Kwajalein Atoll Omelek Island");
 	//Flight One
-	Mission* flightOne = createMission(1, "Falcon One Flight One", "Engine failure at 33 seconds and loss of vehicle", Date("2006-03-24"), site);
+	Mission* flightOne = createMission(1, "Falcon One Flight One", "Engine failure at 33 seconds and loss of vehicle", Date("2006-03-24"), site, 0);
 	Booster* booster1 = createBooster("00001", "Destroyed", 0);
 	flownBy* f1 = createFlownBy(booster1, flightOne, "", "");
 	Payload* p1 = createPayload("FalconSAT-2", "LEO", 20, "DARPA", "Failed", nullptr, flightOne);
 	//Flight Two
-	Mission* flightTwo = createMission(2, "Falcon One Flight Two", "Successful first stage burn and transition to second stage, maximum altitude 289 km, Premature engine shutdown at T+7 min 30 s, Failed to reach orbit, Failed to recover first stage", Date("2007-03-21"), site);
+	Mission* flightTwo = createMission(2, "Falcon One Flight Two", "Successful first stage burn and transition to second stage, maximum altitude 289 km, Premature engine shutdown at T+7 min 30 s, Failed to reach orbit, Failed to recover first stage", Date("2007-03-21"), site, 0);
 	Booster* booster2 = createBooster("00002", "Expended", 0);
 	flownBy* f2 = createFlownBy(booster2, flightTwo, "", "");
 	Payload* p2 = createPayload("DemoSAT", "LEO", INT_MIN, "DARPA", "Failed", nullptr, flightTwo);
 	//Flight Three
-	Mission* flightThree = createMission(3, "Falcon One Flight Three", "Residual stage 1 thrust led to collision between stage 1 and stage 2", Date("2008-08-02"), site);
+	Mission* flightThree = createMission(3, "Falcon One Flight Three", "Residual stage 1 thrust led to collision between stage 1 and stage 2", Date("2008-08-02"), site, 0);
 	Booster* booster3 = createBooster("00003", "Destroyed", 0);
 	flownBy* f3 = createFlownBy(booster3, flightThree, "", "");
 	Payload* p3 = createPayload("Trailblazer", "LEO", INT_MIN, "NASA", "Failed", nullptr, flightThree);
 	Payload* p4 = createPayload("PRESat", "LEO", INT_MIN, "ORS", "Failed", nullptr, flightThree);
 	//Flight Four
-	Mission* flightFour = createMission(4, "Falcon One Flight Four", "Ratsat was carried to orbit on the first successful orbital launch of any privately funded and developed, liquid-propelled carrier rocket, the SpaceX Falcon 1", Date("2008-09-28"), site);
+	Mission* flightFour = createMission(4, "Falcon One Flight Four", "Ratsat was carried to orbit on the first successful orbital launch of any privately funded and developed, liquid-propelled carrier rocket, the SpaceX Falcon 1", Date("2008-09-28"), site, 1);
 	Booster* booster4 = createBooster("00004", "Expended", 0);
 	flownBy* f4 = createFlownBy(booster4, flightFour, "", "");
 	Payload* p5 = createPayload("RatSat", "LEO", 165, "SpaceX", "Success", nullptr, flightFour);
 	//Flight Five
-	Mission* flightFive = createMission(5, "Falcon One Flight Five", "Fifth and final flight of Falcon One", Date("2009-07-13"), site);
+	Mission* flightFive = createMission(5, "Falcon One Flight Five", "Fifth and final flight of Falcon One", Date("2009-07-13"), site, 1);
 	Booster* booster5 = createBooster("00005", "Expended", 0);
 	flownBy* f5 = createFlownBy(booster5, flightFive, "", "");
 	Payload* p6 = createPayload("RazakSAT", "LEO", 200, "ATSB", "Success", nullptr, flightFive);

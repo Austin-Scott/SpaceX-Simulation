@@ -399,6 +399,7 @@ struct Mission : public Relationship {
 	char Description[500];
 	Date date;
 	LaunchSite* LaunchSiteName;
+	int LaunchSuccess; //-1=null, 0=false, 1=true
 
 	Mission()  {}
 	Mission(const Mission &other)  {
@@ -410,29 +411,32 @@ struct Mission : public Relationship {
 		strmov(other.Description, Description, 500);
 		date = other.date;
 		LaunchSiteName = other.LaunchSiteName;
+		LaunchSuccess = other.LaunchSuccess;
 	}
 	virtual string insertTuple() {
 		string result = "insert into " + getName() + " values ( " + to_string(MissionNumber) + ", ";
 		result = Title[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(Title)) + "', ";
 		result = Description[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(Description)) + "', ";
 		result += "'" + to_string(date) + "', ";
-		result = LaunchSiteName == nullptr ? result + "NULL" : result + "'" + to_string(LaunchSiteName->Name) + "'";
+		result = LaunchSiteName == nullptr ? result + "NULL, " : result + "'" + to_string(LaunchSiteName->Name) + "', ";
+		result += boolToString(LaunchSuccess);
 		result += ")";
 		return result;
 	}
 	static string createTable() {
-		return "create table " + getName() + " (MissionNumber int not null,Title varchar(255),Description varchar(500),Date date,LaunchSiteName varchar(100) not null,primary key(MissionNumber),foreign key(LaunchSiteName) references LaunchSite(Name))";
+		return "create table " + getName() + " (MissionNumber int not null,Title varchar(255),Description varchar(500),Date date,LaunchSiteName varchar(100) not null, LaunchSuccess boolean, primary key(MissionNumber),foreign key(LaunchSiteName) references LaunchSite(Name))";
 	}
 	static string getName() { return "Mission";  }
 };
 LinkedList<Mission> Missions;
-Mission* createMission(int MissionNumber, string Title, string Description, Date date, LaunchSite* LaunchSiteName) {
+Mission* createMission(int MissionNumber, string Title, string Description, Date date, LaunchSite* LaunchSiteName, int LaunchSuccess) {
 	Mission m;
 	m.MissionNumber = MissionNumber;
 	strcpy(Title, m.Title, 255);
 	strcpy(Description, m.Description, 500);
 	m.date = date;
 	m.LaunchSiteName = LaunchSiteName;
+	m.LaunchSuccess = LaunchSuccess;
 	Missions.push_back(m);
 	return Missions.back();
 }
@@ -447,7 +451,7 @@ string listMissions() {
 	string result = "";
 	for (auto i = Missions.begin(); i.hasNext(); i.operator++()) {
 		auto p = &i;
-		result += to_string(p->MissionNumber) + V() + to_string(p->Title) + V() + to_string(p->Description) + V() + to_string(p->date) + V() + to_string(p->LaunchSiteName->Name) + T();
+		result += to_string(p->MissionNumber) + V() + to_string(p->Title) + V() + to_string(p->Description) + V() + to_string(p->date) + V() + to_string(p->LaunchSiteName->Name) + V() + boolToListString(p->LaunchSuccess) + T();
 	}
 	return result;
 }

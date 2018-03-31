@@ -141,7 +141,7 @@ bool generateMission(default_random_engine &e) {
 	//Step 9: Get/Create launchsite reference
 	LaunchSite* missionLaunchSite = findOrCreateLaunchSite(launchSites[launchSite].name, launchSites[launchSite].description);
 	//Step 10: Create new mission reference
-	Mission* mission = createMission(highestMissionNumber, payloadName, "", today, missionLaunchSite);
+	Mission* mission = createMission(highestMissionNumber, payloadName, "", today, missionLaunchSite, -1);
 	highestMissionNumber++;
 	//Step 11: Create primary payload reference
 	vector<Payload*> payloads;
@@ -177,6 +177,7 @@ bool generateMission(default_random_engine &e) {
 	random_shuffle(sites.begin(), sites.end());
 	//Step 14: Launch!!!
 	bool successfulLaunch = chanceOutOf1000(AVERAGE_SUCCESSFUL_LAUNCHES_PER_1000, e);
+	mission->LaunchSuccess = successfulLaunch ? 1 : 0;
 	//Step 15: Land!!!
 	for (auto i : cores) {
 		i->flights++;
