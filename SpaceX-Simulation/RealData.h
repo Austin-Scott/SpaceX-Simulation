@@ -1,4 +1,6 @@
 #pragma once
+#include <stdio.h>
+#include <time.h>
 
 #include "Hanger.h"
 
@@ -7,8 +9,17 @@
 
 using namespace rapidjson;
 
+const string getCurrentDate() {
+	time_t now = time(0);
+	struct tm tstruct;
+	char buf[80];
+	tstruct = *localtime(&now);
+	strftime(buf, sizeof(buf), "%Y-%m-%d", &tstruct);
+	return buf;
+}
+
 const string startDate = "2010-06-04";
-const string endDate = "2018-03-24";
+const string endDate = getCurrentDate();
 int highestMissionNumber = 0;
 int highestBoosterNumber = 0;
 int highestCapsuleNumber = 0;
