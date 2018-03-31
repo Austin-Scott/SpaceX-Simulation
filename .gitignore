@@ -303,3 +303,4 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 SpaceX-Simulation/curl.exe
+SpaceX-Simulation/mysqlcppconn.dll

@@ -3,7 +3,7 @@
 #include <time.h>
 #include <algorithm>
 
-#define FLIGHTS_TO_PERFORM 2000
+int FLIGHTS_TO_PERFORM = 2000;
 #define AVERAGE_FLIGHTS_PER_MONTH 5
 #define AVERAGE_FALCON_HEAVY_FLIGHTS_PER_1000 75
 #define AVERAGE_SUCCESSFUL_LAUNCHES_PER_1000 996
@@ -213,9 +213,15 @@ bool generateMission(default_random_engine &e) {
 		}
 	}
 	if (payloadNames[payloadChoice].requiresDragon && successfulLaunch) {
-		dragonsInSpace.addVehicle(dragonCapsule, today);
-		string description = "Last flown on " + payloadName + " to " + destinations[destination].name + " on "+to_string(today)+".";
-		strcpy(description, dragonCapsule->Description, 500);
+		if (payloadChoice == 2) {
+			string description = "Sent to Mars on " + to_string(today) + " with no hope to return.";
+			strcpy(description, dragonCapsule->Description, 500);
+		}
+		else {
+			dragonsInSpace.addVehicle(dragonCapsule, today);
+			string description = "Last flown on " + payloadName + " to " + destinations[destination].name + " on " + to_string(today) + ".";
+			strcpy(description, dragonCapsule->Description, 500);
+		}
 	}
 	else if (payloadNames[payloadChoice].requiresDragon) {
 		string description = "Destroyed on failed " + payloadName + " launch to " + destinations[destination].name + " on " + to_string(today) + ".";
@@ -264,7 +270,7 @@ bool generateMission(default_random_engine &e) {
 			}
 		}
 		description += " Mission failed.";
-		if (payloadNames[payloadChoice].requiresDragon && payloadChoice != 0) {
+		if (payloadNames[payloadChoice].requiresDragon && payloadChoice == 1) {
 			description += " No survivors.";
 		}
 	}
