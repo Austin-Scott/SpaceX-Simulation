@@ -242,9 +242,18 @@ bool generateMission(default_random_engine &e) {
 	//Step 17: Create mission description
 	string description;
 	if (successfulLaunch) {
-		description += "On " + to_string(today) + " a SpaceX ";
-		description += falconHeavy ? "Falcon Heavy " : "Falcon 9 ";
-		description += "lifted off from " + launchSites[launchSite].description + " carrying " + payloadNames[payloadChoice].supplier + "'s " + payloadName + " payload to " + destinations[destination].name + ".";
+		if (crewMembers==0) {
+			description += "On " + to_string(today) + " a SpaceX ";
+			description += falconHeavy ? "Falcon Heavy " : "Falcon 9 ";
+			description += "lifted off from " + launchSites[launchSite].description + " carrying " + payloadNames[payloadChoice].supplier + "'s " + payloadName + " payload to " + destinations[destination].name + ".";
+		}
+		else {
+			description += "SpaceX successfully launched " + to_string(crewMembers) + " ";
+			description = payloadChoice != 10 ? description + "Astronauts " : description + "Space Tourists ";
+			description += "to " + destinations[destination].name + " orbit onboard their ";
+			description += falconHeavy ? "Falcon Heavy " : "Falcon 9 ";
+			description += " rocket on " + to_string(today) + ".";
+		}
 		if (payloads.size() > 1) {
 			description += " Secondary payloads also included in this flight are: ";
 			for (int i = 1; i < payloads.size(); i++) {
@@ -252,7 +261,7 @@ bool generateMission(default_random_engine &e) {
 				if (i == payloads.size() - 1) {
 					description += ".";
 				}
-				else if (payloads.size()>3 && i == payloads.size() - 2) {
+				else if (payloads.size() > 3 && i == payloads.size() - 2) {
 					description += ", and ";
 				}
 				else {
@@ -263,28 +272,32 @@ bool generateMission(default_random_engine &e) {
 		description += " Complete mission success.";
 	}
 	else {
-		description += "On " + to_string(today) + " a SpaceX ";
-		description += falconHeavy ? "Falcon Heavy " : "Falcon 9 ";
-		description += "exploded seconds after lifting off from " + launchSites[launchSite].description + " carrying " + payloadNames[payloadChoice].supplier + "'s " + payloadName + " payload to " + destinations[destination].name + ".";
-		if (payloads.size() > 1) {
-			description += " Secondary payloads also included in this flight are: ";
-			for (int i = 1; i < payloads.size(); i++) {
-				description += payloads[i]->Title;
-				if (i == payloads.size() - 1) {
-					description += ".";
-				}
-				else if (payloads.size()>3 && i == payloads.size() - 2) {
-					description += ", and ";
-				}
-				else {
-					description += ", ";
+		if (crewMembers == 0) {
+			description += "On " + to_string(today) + " a SpaceX ";
+			description += falconHeavy ? "Falcon Heavy " : "Falcon 9 ";
+			description += "exploded seconds after lifting off from " + launchSites[launchSite].description + " carrying " + payloadNames[payloadChoice].supplier + "'s " + payloadName + " payload to " + destinations[destination].name + ".";
+			if (payloads.size() > 1) {
+				description += " Secondary payloads also included in this flight were: ";
+				for (int i = 1; i < payloads.size(); i++) {
+					description += payloads[i]->Title;
+					if (i == payloads.size() - 1) {
+						description += ".";
+					}
+					else if (payloads.size() > 3 && i == payloads.size() - 2) {
+						description += ", and ";
+					}
+					else {
+						description += ", ";
+					}
 				}
 			}
 		}
-		description += " Mission failed.";
-		if (payloadNames[payloadChoice].requiresDragon && (payloadChoice == 1 || payloadChoice == 10)) {
-			description += " No survivors.";
+		else {
+			description += "Shortly after liftoff, a fireball consumed SpaceX's ";
+			description += falconHeavy ? "Falcon Heavy " : "Falcon 9 ";
+			description += "rocket carrying " + to_string(crewMembers) + " souls who tragically perished in the explosion. The rocket's intended destination was " + destinations[destination].name + " orbit.";
 		}
+		description += " Mission failed.";
 	}
 
 	strcpy(description, mission->Description, 500);
