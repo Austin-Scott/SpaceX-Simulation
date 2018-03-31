@@ -461,6 +461,7 @@ struct flownBy : public Relationship {
 	Mission* MissionNumber; //Primary Key
 	char LandingSite[100];
 	char LandingOutcome[500];
+	int LandingSuccess; //-1=null, 0=false, 1=true
 
 	flownBy()  {}
 	flownBy(const flownBy &other) {
@@ -471,26 +472,29 @@ struct flownBy : public Relationship {
 		MissionNumber = other.MissionNumber;
 		strmov(other.LandingSite, LandingSite, 100);
 		strmov(other.LandingOutcome, LandingOutcome, 500);
+		LandingSuccess = other.LandingSuccess;
 	}
 	virtual string insertTuple() {
 		string result = "insert into " + getName() + " values ( '" + to_string(BoosterID->BoosterID, 5) + "', " + to_string(MissionNumber->MissionNumber) + ", ";
 		result = LandingSite[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(LandingSite)) + "', ";
-		result = LandingOutcome[0] == '\0' ? result + "NULL" : result + "'" + sanitize(to_string(LandingOutcome)) + "'";
+		result = LandingOutcome[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(LandingOutcome)) + "', ";
+		result += boolToString(LandingSuccess);
 		result += ")";
 		return result;
 	}
 	static string createTable() {
-		return "create table " + getName() + " (BoosterID char(5) not null,MissionNumber int not null,LandingSite varchar(100),LandingOutcome varchar(500),primary key(BoosterID, MissionNumber),foreign key(BoosterID) references Booster(BoosterID),foreign key(MissionNumber) references Mission(MissionNumber))";
+		return "create table " + getName() + " (BoosterID char(5) not null,MissionNumber int not null,LandingSite varchar(100),LandingOutcome varchar(500), LandingSuccess boolean, primary key(BoosterID, MissionNumber),foreign key(BoosterID) references Booster(BoosterID),foreign key(MissionNumber) references Mission(MissionNumber))";
 	}
 	static string getName() { return "flownBy";  }
 };
 LinkedList<flownBy> flownBys;
-flownBy* createFlownBy(Booster* BoosterID, Mission* MissionNumber, string LandingSite, string LandingOutcome) {
+flownBy* createFlownBy(Booster* BoosterID, Mission* MissionNumber, string LandingSite, string LandingOutcome, int LandingSuccess) {
 	flownBy f;
 	f.BoosterID = BoosterID;
 	f.MissionNumber = MissionNumber;
 	strcpy(LandingSite, f.LandingSite, 100);
 	strcpy(LandingOutcome, f.LandingOutcome, 500);
+	f.LandingSuccess = LandingSuccess;
 	flownBys.push_back(f);
 	return flownBys.back();
 }
@@ -506,7 +510,7 @@ string listflownBys() {
 	string result = "";
 	for (auto i = flownBys.begin(); i.hasNext(); i.operator++()) {
 		auto p = &i;
-		result += to_string(p->BoosterID->BoosterID, 5) + V() + to_string(p->MissionNumber->MissionNumber) + V() + to_string(p->LandingSite) + V() + to_string(p->LandingOutcome) + T();
+		result += to_string(p->BoosterID->BoosterID, 5) + V() + to_string(p->MissionNumber->MissionNumber) + V() + to_string(p->LandingSite) + V() + to_string(p->LandingOutcome) + V() + boolToListString(p->LandingSuccess) + T();
 	}
 	return result;
 }
@@ -519,6 +523,7 @@ struct Payload : public Relationship {
 	char MissionOutcome[500];
 	Dragon* DragonSerial;
 	Mission* MissionNumber; //Must not be null
+	int CrewMembers;
 
 	Payload()  {}
 	Payload(const Payload &other) {
@@ -532,6 +537,7 @@ struct Payload : public Relationship {
 		strmov(other.MissionOutcome, MissionOutcome, 500);
 		DragonSerial = other.DragonSerial;
 		MissionNumber = other.MissionNumber;
+		CrewMembers = other.CrewMembers;
 	}
 	virtual string insertTuple() {
 		string result = "insert into " + getName() + " values ( '" + sanitize(to_string(Title)) + "', ";
@@ -540,16 +546,18 @@ struct Payload : public Relationship {
 		result = Supplier[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(Supplier)) + "', ";
 		result = MissionOutcome[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(MissionOutcome)) + "', ";
 		result = DragonSerial == nullptr ? result + "NULL, " : result + "'" + to_string(DragonSerial->SerialNumber, 4) + "', ";
-		result += to_string(MissionNumber->MissionNumber) + ")";
+		result += to_string(MissionNumber->MissionNumber) + ", ";
+		result += to_string(CrewMembers);
+		result += ")";
 		return result;
 	}
 	static string createTable() {
-		return "create table " + getName() + " (Title varchar(100) not null,Orbit varchar(100),PayloadMass int,Supplier varchar(255),MissionOutcome varchar(500),DragonSerial char(4),MissionNumber int not null,primary key(Title),foreign key(DragonSerial) references Dragon(SerialNumber),foreign key(MissionNumber) references Mission(MissionNumber))";
+		return "create table " + getName() + " (Title varchar(100) not null,Orbit varchar(100),PayloadMass int,Supplier varchar(255),MissionOutcome varchar(500),DragonSerial char(4),MissionNumber int not null, CrewMembers int, primary key(Title),foreign key(DragonSerial) references Dragon(SerialNumber),foreign key(MissionNumber) references Mission(MissionNumber))";
 	}
 	static string getName() { return "Payload";  }
 };
 LinkedList<Payload> Payloads;
-Payload* createPayload(string Title, string Orbit, int PayloadMass, string Supplier, string MissionOutcome, Dragon* DragonSerial, Mission* MissionNumber) {
+Payload* createPayload(string Title, string Orbit, int PayloadMass, string Supplier, string MissionOutcome, Dragon* DragonSerial, Mission* MissionNumber, int CrewMembers) {
 	Payload p;
 	strcpy(Title, p.Title, 100);
 	strcpy(Orbit, p.Orbit, 100);
@@ -558,6 +566,7 @@ Payload* createPayload(string Title, string Orbit, int PayloadMass, string Suppl
 	strcpy(MissionOutcome, p.MissionOutcome, 500);
 	p.DragonSerial = DragonSerial;
 	p.MissionNumber = MissionNumber;
+	p.CrewMembers = CrewMembers;
 	Payloads.push_back(p);
 	return Payloads.back();
 }
@@ -576,7 +585,7 @@ string listPayloads() {
 		string payloadMass = p->PayloadMass != INT_MIN ? to_string(p->PayloadMass) : NullIndicator;
 		string dragonSerial = p->DragonSerial != nullptr ? to_string(p->DragonSerial->SerialNumber, 4) : NullIndicator;
 		result += to_string(p->Title) + V() + to_string(p->Orbit) + V() + payloadMass + V() + to_string(p->Supplier) + V() + to_string(p->MissionOutcome) + V()
-			+ dragonSerial + V() + to_string(p->MissionNumber->MissionNumber) + T();
+			+ dragonSerial + V() + to_string(p->MissionNumber->MissionNumber) + V() + to_string(p->CrewMembers) + T();
 	}
 	return result;
 }

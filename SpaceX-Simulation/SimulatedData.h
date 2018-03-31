@@ -17,6 +17,7 @@ int FLIGHTS_TO_PERFORM = 2000;
 #define MINIMUM_FLIGHT_READY_DRAGONS 2
 #define MAXIMUM_SECONDARY_PAYLOADS 3
 #define AVERAGE_FLIGHTS_WITH_SECONDARY_PAYLOADS_PER_1000 250
+#define DRAGON_CREW_CAPACITY 7
 
 
 int currentNumberOfFlights = 0;
@@ -130,6 +131,11 @@ bool generateMission(default_random_engine &e) {
 	if (payloadNames[payloadChoice].requiresDragon) {
 		dragonCapsule = flightActiveDragons.getRandomVehicles(1, e)[0];
 	}
+	int crewMembers = 0;
+	if (payloadChoice == 1 || payloadChoice == 10) {
+		uniform_int_distribution<int> chooseCrewMembers(1, DRAGON_CREW_CAPACITY);
+		crewMembers = chooseCrewMembers(e);
+	}
 	//Step 8: Assign Core/s
 	vector<Booster*> cores;
 	if (falconHeavy) {
@@ -145,7 +151,7 @@ bool generateMission(default_random_engine &e) {
 	highestMissionNumber++;
 	//Step 11: Create primary payload reference
 	vector<Payload*> payloads;
-	payloads.push_back(createPayload(payloadName, destinations[destination].name, primaryMass, payloadNames[payloadChoice].supplier, "", dragonCapsule, mission));
+	payloads.push_back(createPayload(payloadName, destinations[destination].name, primaryMass, payloadNames[payloadChoice].supplier, "", dragonCapsule, mission, crewMembers));
 	//Step 12: Add secondary payload references
 	if (chanceOutOf1000(AVERAGE_FLIGHTS_WITH_SECONDARY_PAYLOADS_PER_1000, e)) {
 		maxMass += dragonMass;
@@ -160,7 +166,7 @@ bool generateMission(default_random_engine &e) {
 			uniform_int_distribution<int> secondaryPayloadMassChoices(MINIMUM_PAYLOAD_WEIGHT, maxMass - primaryMass);
 			int secondaryPayloadMass = secondaryPayloadMassChoices(e);
 			//Step 12.3: Create secondary payload reference
-			payloads.push_back(createPayload(payloadNames[secondaryPayloadChoice].getName(), destinations[destination].name, secondaryPayloadMass, payloadNames[secondaryPayloadChoice].supplier, "", dragonCapsule, mission));
+			payloads.push_back(createPayload(payloadNames[secondaryPayloadChoice].getName(), destinations[destination].name, secondaryPayloadMass, payloadNames[secondaryPayloadChoice].supplier, "", dragonCapsule, mission, 0));
 			//Step 12.4: Reduce total payload capacity
 			primaryMass += secondaryPayloadMass;
 
@@ -182,8 +188,10 @@ bool generateMission(default_random_engine &e) {
 	for (auto i : cores) {
 		i->flights++;
 		string landingOutcome;
+		int landingSuccess = -1;
 		if (successfulLaunch) {
 			if (chanceOutOf1000(AVERAGE_SUCCESSFUL_LANDINGS_PER_1000, e)) {
+				landingSuccess = 1;
 				landingOutcome = "Success. Core recovered nominally.";
 				if ((i->BlockNumber == 5 && i->flights < BLOCK_V_MAX_REFLIGHTS) || (i->BlockNumber != 5 && i->flights < LESSER_BLOCK_MAX_REFLIGHTS)) {
 					flightActiveCores.addVehicle(i);
@@ -193,6 +201,7 @@ bool generateMission(default_random_engine &e) {
 				}
 			}
 			else {
+				landingSuccess = 0;
 				landingOutcome = "Rapid unscheduled dissasembly.";
 				strcpy("Destroyed", i->FlightStatus, 255);
 			}
@@ -201,7 +210,7 @@ bool generateMission(default_random_engine &e) {
 			landingOutcome = "Precluded. Core destroyed during failed launch.";
 			strcpy("Destroyed", i->FlightStatus, 255);
 		}
-		flownBy* flight = createFlownBy(i, mission, sites.back(), landingOutcome);
+		flownBy* flight = createFlownBy(i, mission, sites.back(), landingOutcome, landingSuccess);
 		sites.pop_back();
 	}
 	//Step 16: Update payloads
@@ -273,7 +282,7 @@ bool generateMission(default_random_engine &e) {
 			}
 		}
 		description += " Mission failed.";
-		if (payloadNames[payloadChoice].requiresDragon && payloadChoice == 1) {
+		if (payloadNames[payloadChoice].requiresDragon && (payloadChoice == 1 || payloadChoice == 10)) {
 			description += " No survivors.";
 		}
 	}
