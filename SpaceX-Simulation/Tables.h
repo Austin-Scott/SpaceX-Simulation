@@ -644,27 +644,45 @@ string dropTable(string name) {
 	return "DROP TABLE IF EXISTS " + name;
 }
 
-void updateDatabase(string address, string schema, string username, string password) {
+string dropTuples(string name) {
+	return "DELETE FROM " + name;
+}
+
+void updateDatabase(string address, string schema, string username, string password, bool soft) {
 	cout << "Connecting to database at " << address << "..." << endl;
 	connectToDatabase(address, schema, username, password);
 
-	cout << "Dropping any pre-existing tables..." << endl;
-	//Drop tables if they exist
-	executeSQL(dropTable(flownBy::getName()));
-	executeSQL(dropTable(Payload::getName()));
-	executeSQL(dropTable(Booster::getName()));
-	executeSQL(dropTable(Dragon::getName()));
-	executeSQL(dropTable(Mission::getName()));
-	executeSQL(dropTable(LaunchSite::getName()));
+	if (soft) {
+		cout << "Dropping all tuples from tables..." << endl;
+		//drop all tuples
+		executeSQL(dropTuples(flownBy::getName()));
+		executeSQL(dropTuples(Payload::getName()));
+		executeSQL(dropTuples(Booster::getName()));
+		executeSQL(dropTuples(Dragon::getName()));
+		executeSQL(dropTuples(Mission::getName()));
+		executeSQL(dropTuples(LaunchSite::getName()));
+	}
+	else {
 
-	cout << "Creating tables..." << endl;
-	//Re-create the dropped tables
-	executeSQL(Booster::createTable());
-	executeSQL(Dragon::createTable());
-	executeSQL(LaunchSite::createTable());
-	executeSQL(Mission::createTable());
-	executeSQL(flownBy::createTable());
-	executeSQL(Payload::createTable());
+		cout << "Dropping any pre-existing tables..." << endl;
+		//Drop tables if they exist
+		executeSQL(dropTable(flownBy::getName()));
+		executeSQL(dropTable(Payload::getName()));
+		executeSQL(dropTable(Booster::getName()));
+		executeSQL(dropTable(Dragon::getName()));
+		executeSQL(dropTable(Mission::getName()));
+		executeSQL(dropTable(LaunchSite::getName()));
+
+		cout << "Creating tables..." << endl;
+		//Re-create the dropped tables
+		executeSQL(Booster::createTable());
+		executeSQL(Dragon::createTable());
+		executeSQL(LaunchSite::createTable());
+		executeSQL(Mission::createTable());
+		executeSQL(flownBy::createTable());
+		executeSQL(Payload::createTable());
+
+	}
 
 	//Populate the database
 	cout << "Inserting tuples into " << Booster::getName() << "..." << endl;
