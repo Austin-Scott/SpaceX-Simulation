@@ -652,65 +652,72 @@ void updateDatabase(string address, string schema, string username, string passw
 	cout << "Connecting to database at " << address << "..." << endl;
 	connectToDatabase(address, schema, username, password);
 
-	if (soft) {
-		cout << "Dropping all tuples from tables..." << endl;
-		//drop all tuples
-		executeSQL(dropTuples(flownBy::getName()));
-		executeSQL(dropTuples(Payload::getName()));
-		executeSQL(dropTuples(Booster::getName()));
-		executeSQL(dropTuples(Dragon::getName()));
-		executeSQL(dropTuples(Mission::getName()));
-		executeSQL(dropTuples(LaunchSite::getName()));
+	if (isSQLConnected()) {
+
+		if (soft) {
+			cout << "Dropping all tuples from tables..." << endl;
+			//drop all tuples
+			executeSQL(dropTuples(flownBy::getName()));
+			executeSQL(dropTuples(Payload::getName()));
+			executeSQL(dropTuples(Booster::getName()));
+			executeSQL(dropTuples(Dragon::getName()));
+			executeSQL(dropTuples(Mission::getName()));
+			executeSQL(dropTuples(LaunchSite::getName()));
+		}
+		else {
+
+			cout << "Dropping any pre-existing tables..." << endl;
+			//Drop tables if they exist
+			executeSQL(dropTable(flownBy::getName()));
+			executeSQL(dropTable(Payload::getName()));
+			executeSQL(dropTable(Booster::getName()));
+			executeSQL(dropTable(Dragon::getName()));
+			executeSQL(dropTable(Mission::getName()));
+			executeSQL(dropTable(LaunchSite::getName()));
+
+			cout << "Creating tables..." << endl;
+			//Re-create the dropped tables
+			executeSQL(Booster::createTable());
+			executeSQL(Dragon::createTable());
+			executeSQL(LaunchSite::createTable());
+			executeSQL(Mission::createTable());
+			executeSQL(flownBy::createTable());
+			executeSQL(Payload::createTable());
+
+		}
+
+		//Populate the database
+		cout << "Inserting tuples into " << Booster::getName() << "..." << endl;
+		for (auto iter = Boosters.begin(); iter.hasNext(); iter.operator++()) {
+			executeSQL((&iter)->insertTuple());
+		}
+		cout << "Inserting tuples into " << Dragon::getName() << "..." << endl;
+		for (auto iter = Dragons.begin(); iter.hasNext(); iter.operator++()) {
+			executeSQL((&iter)->insertTuple());
+		}
+		cout << "Inserting tuples into " << LaunchSite::getName() << "..." << endl;
+		for (auto iter = LaunchSites.begin(); iter.hasNext(); iter.operator++()) {
+			executeSQL((&iter)->insertTuple());
+		}
+		cout << "Inserting tuples into " << Mission::getName() << "..." << endl;
+		for (auto iter = Missions.begin(); iter.hasNext(); iter.operator++()) {
+			executeSQL((&iter)->insertTuple());
+		}
+		cout << "Inserting tuples into " << flownBy::getName() << "..." << endl;
+		for (auto iter = flownBys.begin(); iter.hasNext(); iter.operator++()) {
+			executeSQL((&iter)->insertTuple());
+		}
+		cout << "Inserting tuples into " << Payload::getName() << "..." << endl;
+		for (auto iter = Payloads.begin(); iter.hasNext(); iter.operator++()) {
+			executeSQL((&iter)->insertTuple());
+		}
+
+		cout << "Complete. Disconnecting from database." << endl;
+
+		disconnectFromDatabase();
+
 	}
 	else {
-
-		cout << "Dropping any pre-existing tables..." << endl;
-		//Drop tables if they exist
-		executeSQL(dropTable(flownBy::getName()));
-		executeSQL(dropTable(Payload::getName()));
-		executeSQL(dropTable(Booster::getName()));
-		executeSQL(dropTable(Dragon::getName()));
-		executeSQL(dropTable(Mission::getName()));
-		executeSQL(dropTable(LaunchSite::getName()));
-
-		cout << "Creating tables..." << endl;
-		//Re-create the dropped tables
-		executeSQL(Booster::createTable());
-		executeSQL(Dragon::createTable());
-		executeSQL(LaunchSite::createTable());
-		executeSQL(Mission::createTable());
-		executeSQL(flownBy::createTable());
-		executeSQL(Payload::createTable());
-
+		cout << "Could not connect to database. Moving on." << endl;
 	}
-
-	//Populate the database
-	cout << "Inserting tuples into " << Booster::getName() << "..." << endl;
-	for (auto iter = Boosters.begin(); iter.hasNext(); iter.operator++()) {
-		executeSQL((&iter)->insertTuple());
-	}
-	cout << "Inserting tuples into " << Dragon::getName() << "..." << endl;
-	for (auto iter = Dragons.begin(); iter.hasNext(); iter.operator++()) {
-		executeSQL((&iter)->insertTuple());
-	}
-	cout << "Inserting tuples into " << LaunchSite::getName() << "..." << endl;
-	for (auto iter = LaunchSites.begin(); iter.hasNext(); iter.operator++()) {
-		executeSQL((&iter)->insertTuple());
-	}
-	cout << "Inserting tuples into " << Mission::getName() << "..." << endl;
-	for (auto iter = Missions.begin(); iter.hasNext(); iter.operator++()) {
-		executeSQL((&iter)->insertTuple());
-	}
-	cout << "Inserting tuples into " << flownBy::getName() << "..." << endl;
-	for (auto iter = flownBys.begin(); iter.hasNext(); iter.operator++()) {
-		executeSQL((&iter)->insertTuple());
-	}
-	cout << "Inserting tuples into " << Payload::getName() << "..." << endl;
-	for (auto iter = Payloads.begin(); iter.hasNext(); iter.operator++()) {
-		executeSQL((&iter)->insertTuple());
-	}
-
-	cout << "Complete. Disconnecting from database." << endl;
-
-	disconnectFromDatabase();
 }

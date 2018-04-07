@@ -46,6 +46,10 @@ sql::ResultSet* executeQuery(string query) {
 	return nullptr;
 }
 
+bool isSQLConnected() {
+	return con != nullptr;
+}
+
 void executeSQL(string statement) {
 	try {
 		stmt->execute(statement);
