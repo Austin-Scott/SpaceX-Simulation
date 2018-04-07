@@ -71,13 +71,13 @@ int getInt(const Value &parent, string name) {
 	return result;
 }
 
-bool getBool(const Value &parent, string name) {
-	bool result = false;
+int getBool(const Value &parent, string name) {
+	int result = -1;
 	auto iter = parent.FindMember(name.c_str());
 	if (iter != parent.MemberEnd()) {
 		auto &member = iter->value;
 		if (!member.IsNull() && member.IsBool()) {
-			result = member.GetBool();
+			result = member.GetBool()?1:0;
 		}
 	}
 	return result;
@@ -88,7 +88,7 @@ void parseMissionData(const Value &mission) {
 	if (flight_number > highestMissionNumber) highestMissionNumber = flight_number;
 	Date launch_date(getString(mission, "launch_date_utc").substr(0,10));
 	string Description = getString(mission, "details");
-	bool launch_success = getBool(mission, "launch_success");
+	int launch_success = getBool(mission, "launch_success");
 	string rocket_id;
 	string Title; //Assigned by name of primary payload
 	string site_id;
@@ -100,7 +100,7 @@ void parseMissionData(const Value &mission) {
 		site_description = getString(launch_site_value, "site_name_long");
 	}
 	LaunchSite* current_launch_site = findOrCreateLaunchSite(site_id, site_description);
-	Mission* current_mission = createMission(flight_number, "TBD", Description, launch_date, current_launch_site);
+	Mission* current_mission = createMission(flight_number, "TBD", Description, launch_date, current_launch_site, launch_success);
 	auto rocket = mission.FindMember("rocket");
 	if (rocket != mission.MemberEnd()) {
 		auto &rocket_value = rocket->value;
@@ -115,15 +115,19 @@ void parseMissionData(const Value &mission) {
 					for (int i = 0; i < cores_value.Size(); i++) {
 						string core_serial = getString(cores_value[i], "core_serial");
 						int block = getInt(cores_value[i], "block");
-						bool land_success = getBool(cores_value[i], "land_success");
+						int land_success = getBool(cores_value[i], "land_success");
 						string landing_site = getString(cores_value[i], "landing_vehicle");
 						Booster* booster = findBooster(core_serial);
 						if (booster == nullptr) {
-							booster = createBooster(core_serial, land_success ? "Flight Operational" : "Destroyed", block);
+							string status = "";
+							if (land_success == 0) status = "Destroyed";
+							else if (land_success == 1) status = "Flight Operational";
+							else status = "Expended";
+							booster = createBooster(core_serial, status, block);
 							booster->flights = 0;
 						}
 						booster->flights++;
-						createFlownBy(booster, current_mission, landing_site, land_success ? "Booster recovered nominally." : "Rapid unscheduled disassembly.");
+						createFlownBy(booster, current_mission, landing_site, land_success==1 ? "Booster recovered nominally." : "Booster destroyed", land_success);
 					}
 				}
 			}
@@ -142,7 +146,7 @@ void parseMissionData(const Value &mission) {
 						string cap_serial = getString(payloads_value[i], "cap_serial");
 						Dragon* capsule = findDragon(cap_serial);
 						if (capsule == nullptr && cap_serial.size()>0) {
-							capsule = createDragon(cap_serial, "Dragon Capsule");
+							capsule = createDragon(cap_serial, "Dragon Capsule", 1);
 						}
 						string supplier;
 						auto customers = payloads_value[i].FindMember("customers");
@@ -156,7 +160,7 @@ void parseMissionData(const Value &mission) {
 							Title = payload_id;
 							strcpy(Title, current_mission->Title, 255);
 						}
-						createPayload(payload_id, orbit, payload_mass, supplier, launch_success ? "Complete success." : "Mission failed.", capsule, current_mission);
+						createPayload(payload_id, orbit, payload_mass, supplier, launch_success==1 ? "Complete success." : "Mission failed.", capsule, current_mission, 0);
 					}
 				}
 			}
@@ -210,36 +214,39 @@ void prepareCapsuleForSimulation(Dragon* capsule) {
 	if (getString(doc, "status") == "active") {
 		flightActiveDragons.addVehicle(capsule);
 	}
+	else {
+		capsule->FlightActive = 0;
+	}
 }
 
 void addFalconOneLaunches() {
 	LaunchSite* site = createLaunchSite("kwajalein_atoll", "Kwajalein Atoll Omelek Island");
 	//Flight One
-	Mission* flightOne = createMission(1, "Falcon One Flight One", "Engine failure at 33 seconds and loss of vehicle", Date("2006-03-24"), site);
+	Mission* flightOne = createMission(1, "Falcon One Flight One", "Engine failure at 33 seconds and loss of vehicle", Date("2006-03-24"), site, 0);
 	Booster* booster1 = createBooster("00001", "Destroyed", 0);
-	flownBy* f1 = createFlownBy(booster1, flightOne, "", "");
-	Payload* p1 = createPayload("FalconSAT-2", "LEO", 20, "DARPA", "Failed", nullptr, flightOne);
+	flownBy* f1 = createFlownBy(booster1, flightOne, "", "", -1);
+	Payload* p1 = createPayload("FalconSAT-2", "LEO", 20, "DARPA", "Failed", nullptr, flightOne, 0);
 	//Flight Two
-	Mission* flightTwo = createMission(2, "Falcon One Flight Two", "Successful first stage burn and transition to second stage, maximum altitude 289 km, Premature engine shutdown at T+7 min 30 s, Failed to reach orbit, Failed to recover first stage", Date("2007-03-21"), site);
+	Mission* flightTwo = createMission(2, "Falcon One Flight Two", "Successful first stage burn and transition to second stage, maximum altitude 289 km, Premature engine shutdown at T+7 min 30 s, Failed to reach orbit, Failed to recover first stage", Date("2007-03-21"), site, 0);
 	Booster* booster2 = createBooster("00002", "Expended", 0);
-	flownBy* f2 = createFlownBy(booster2, flightTwo, "", "");
-	Payload* p2 = createPayload("DemoSAT", "LEO", INT_MIN, "DARPA", "Failed", nullptr, flightTwo);
+	flownBy* f2 = createFlownBy(booster2, flightTwo, "", "", -1);
+	Payload* p2 = createPayload("DemoSAT", "LEO", INT_MIN, "DARPA", "Failed", nullptr, flightTwo, 0);
 	//Flight Three
-	Mission* flightThree = createMission(3, "Falcon One Flight Three", "Residual stage 1 thrust led to collision between stage 1 and stage 2", Date("2008-08-02"), site);
+	Mission* flightThree = createMission(3, "Falcon One Flight Three", "Residual stage 1 thrust led to collision between stage 1 and stage 2", Date("2008-08-02"), site, 0);
 	Booster* booster3 = createBooster("00003", "Destroyed", 0);
-	flownBy* f3 = createFlownBy(booster3, flightThree, "", "");
-	Payload* p3 = createPayload("Trailblazer", "LEO", INT_MIN, "NASA", "Failed", nullptr, flightThree);
-	Payload* p4 = createPayload("PRESat", "LEO", INT_MIN, "ORS", "Failed", nullptr, flightThree);
+	flownBy* f3 = createFlownBy(booster3, flightThree, "", "", -1);
+	Payload* p3 = createPayload("Trailblazer", "LEO", INT_MIN, "NASA", "Failed", nullptr, flightThree, 0);
+	Payload* p4 = createPayload("PRESat", "LEO", INT_MIN, "ORS", "Failed", nullptr, flightThree, 0);
 	//Flight Four
-	Mission* flightFour = createMission(4, "Falcon One Flight Four", "Ratsat was carried to orbit on the first successful orbital launch of any privately funded and developed, liquid-propelled carrier rocket, the SpaceX Falcon 1", Date("2008-09-28"), site);
+	Mission* flightFour = createMission(4, "Falcon One Flight Four", "Ratsat was carried to orbit on the first successful orbital launch of any privately funded and developed, liquid-propelled carrier rocket, the SpaceX Falcon 1", Date("2008-09-28"), site, 1);
 	Booster* booster4 = createBooster("00004", "Expended", 0);
-	flownBy* f4 = createFlownBy(booster4, flightFour, "", "");
-	Payload* p5 = createPayload("RatSat", "LEO", 165, "SpaceX", "Success", nullptr, flightFour);
+	flownBy* f4 = createFlownBy(booster4, flightFour, "", "", -1);
+	Payload* p5 = createPayload("RatSat", "LEO", 165, "SpaceX", "Success", nullptr, flightFour, 0);
 	//Flight Five
-	Mission* flightFive = createMission(5, "Falcon One Flight Five", "Fifth and final flight of Falcon One", Date("2009-07-13"), site);
+	Mission* flightFive = createMission(5, "Falcon One Flight Five", "Fifth and final flight of Falcon One", Date("2009-07-13"), site, 1);
 	Booster* booster5 = createBooster("00005", "Expended", 0);
-	flownBy* f5 = createFlownBy(booster5, flightFive, "", "");
-	Payload* p6 = createPayload("RazakSAT", "LEO", 200, "ATSB", "Success", nullptr, flightFive);
+	flownBy* f5 = createFlownBy(booster5, flightFive, "", "", -1);
+	Payload* p6 = createPayload("RazakSAT", "LEO", 200, "ATSB", "Success", nullptr, flightFive, 0);
 }
 
 void getRealData() {

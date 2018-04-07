@@ -72,6 +72,16 @@ bool stringcmp(string a, char* b, int n, bool varlength = true) {
 	}
 	return false;
 }
+string boolToString(int boolean) {
+	if (boolean == 1) return "true";
+	else if (boolean == 0) return "false";
+	else return "NULL";
+}
+string boolToListString(int boolean) {
+	if (boolean == 1) return "1";
+	else if (boolean == 0) return "0";
+	else return NullIndicator;
+}
 
 struct Booster : public Relationship {
 	char BoosterID[5]; //Primary Key
@@ -134,6 +144,7 @@ string listBoosters() {
 struct Dragon : public Relationship {
 	char SerialNumber[4]; //Primary Key
 	char Description[500];
+	int FlightActive; //-1=null, 0=false, 1=true
 
 	Dragon()  {}
 	Dragon(const Dragon &other)  {
@@ -142,23 +153,26 @@ struct Dragon : public Relationship {
 	void operator=(const Dragon &other) {
 		strmov(other.SerialNumber, SerialNumber, 4);
 		strmov(other.Description, Description, 500);
+		FlightActive = other.FlightActive;
 	}
 	virtual string insertTuple() {
 		string result = "insert into " + getName() + " values ( '" + to_string(SerialNumber, 4) + "', ";
-		result = Description[0] == '\0' ? result + "NULL" : result + "'" + sanitize(to_string(Description)) + "'";
+		result = Description[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(Description)) + "', ";
+		result += boolToString(FlightActive);
 		result += ")";
 		return result;
 	}
 	static string createTable() {
-		return "create table " + getName() + " ( SerialNumber char(4) not null, Description varchar(500), primary key(SerialNumber) )";
+		return "create table " + getName() + " ( SerialNumber char(4) not null, Description varchar(500), FlightActive boolean, primary key(SerialNumber) )";
 	}
 	static string getName() { return "Dragon";  }
 };
 LinkedList<Dragon> Dragons;
-Dragon* createDragon(string SerialNumber, string Description) {
+Dragon* createDragon(string SerialNumber, string Description, int FlightActive) {
 	Dragon d;
 	strcpy(SerialNumber, d.SerialNumber, 4, false);
 	strcpy(Description, d.Description, 500);
+	d.FlightActive = FlightActive;
 	Dragons.push_back(d);
 	return Dragons.back();
 }
@@ -174,7 +188,7 @@ string listDragons() {
 	string result = "";
 	for (auto i = Dragons.begin(); i.hasNext(); i.operator++()) {
 		auto p = &i;
-		result += to_string(p->SerialNumber, 4) + V() + to_string(p->Description) + T();
+		result += to_string(p->SerialNumber, 4) + V() + to_string(p->Description) + V() + boolToListString(p->FlightActive) + T();
 	}
 	return result;
 }
@@ -385,6 +399,7 @@ struct Mission : public Relationship {
 	char Description[500];
 	Date date;
 	LaunchSite* LaunchSiteName;
+	int LaunchSuccess; //-1=null, 0=false, 1=true
 
 	Mission()  {}
 	Mission(const Mission &other)  {
@@ -396,29 +411,32 @@ struct Mission : public Relationship {
 		strmov(other.Description, Description, 500);
 		date = other.date;
 		LaunchSiteName = other.LaunchSiteName;
+		LaunchSuccess = other.LaunchSuccess;
 	}
 	virtual string insertTuple() {
 		string result = "insert into " + getName() + " values ( " + to_string(MissionNumber) + ", ";
 		result = Title[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(Title)) + "', ";
 		result = Description[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(Description)) + "', ";
 		result += "'" + to_string(date) + "', ";
-		result = LaunchSiteName == nullptr ? result + "NULL" : result + "'" + to_string(LaunchSiteName->Name) + "'";
+		result = LaunchSiteName == nullptr ? result + "NULL, " : result + "'" + to_string(LaunchSiteName->Name) + "', ";
+		result += boolToString(LaunchSuccess);
 		result += ")";
 		return result;
 	}
 	static string createTable() {
-		return "create table " + getName() + " (MissionNumber int not null,Title varchar(255),Description varchar(500),Date date,LaunchSiteName varchar(100) not null,primary key(MissionNumber),foreign key(LaunchSiteName) references LaunchSite(Name))";
+		return "create table " + getName() + " (MissionNumber int not null,Title varchar(255),Description varchar(500),Date date,LaunchSiteName varchar(100) not null, LaunchSuccess boolean, primary key(MissionNumber),foreign key(LaunchSiteName) references LaunchSite(Name))";
 	}
 	static string getName() { return "Mission";  }
 };
 LinkedList<Mission> Missions;
-Mission* createMission(int MissionNumber, string Title, string Description, Date date, LaunchSite* LaunchSiteName) {
+Mission* createMission(int MissionNumber, string Title, string Description, Date date, LaunchSite* LaunchSiteName, int LaunchSuccess) {
 	Mission m;
 	m.MissionNumber = MissionNumber;
 	strcpy(Title, m.Title, 255);
 	strcpy(Description, m.Description, 500);
 	m.date = date;
 	m.LaunchSiteName = LaunchSiteName;
+	m.LaunchSuccess = LaunchSuccess;
 	Missions.push_back(m);
 	return Missions.back();
 }
@@ -433,7 +451,7 @@ string listMissions() {
 	string result = "";
 	for (auto i = Missions.begin(); i.hasNext(); i.operator++()) {
 		auto p = &i;
-		result += to_string(p->MissionNumber) + V() + to_string(p->Title) + V() + to_string(p->Description) + V() + to_string(p->date) + V() + to_string(p->LaunchSiteName->Name) + T();
+		result += to_string(p->MissionNumber) + V() + to_string(p->Title) + V() + to_string(p->Description) + V() + to_string(p->date) + V() + to_string(p->LaunchSiteName->Name) + V() + boolToListString(p->LaunchSuccess) + T();
 	}
 	return result;
 }
@@ -443,6 +461,7 @@ struct flownBy : public Relationship {
 	Mission* MissionNumber; //Primary Key
 	char LandingSite[100];
 	char LandingOutcome[500];
+	int LandingSuccess; //-1=null, 0=false, 1=true
 
 	flownBy()  {}
 	flownBy(const flownBy &other) {
@@ -453,26 +472,29 @@ struct flownBy : public Relationship {
 		MissionNumber = other.MissionNumber;
 		strmov(other.LandingSite, LandingSite, 100);
 		strmov(other.LandingOutcome, LandingOutcome, 500);
+		LandingSuccess = other.LandingSuccess;
 	}
 	virtual string insertTuple() {
 		string result = "insert into " + getName() + " values ( '" + to_string(BoosterID->BoosterID, 5) + "', " + to_string(MissionNumber->MissionNumber) + ", ";
 		result = LandingSite[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(LandingSite)) + "', ";
-		result = LandingOutcome[0] == '\0' ? result + "NULL" : result + "'" + sanitize(to_string(LandingOutcome)) + "'";
+		result = LandingOutcome[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(LandingOutcome)) + "', ";
+		result += boolToString(LandingSuccess);
 		result += ")";
 		return result;
 	}
 	static string createTable() {
-		return "create table " + getName() + " (BoosterID char(5) not null,MissionNumber int not null,LandingSite varchar(100),LandingOutcome varchar(500),primary key(BoosterID, MissionNumber),foreign key(BoosterID) references Booster(BoosterID),foreign key(MissionNumber) references Mission(MissionNumber))";
+		return "create table " + getName() + " (BoosterID char(5) not null,MissionNumber int not null,LandingSite varchar(100),LandingOutcome varchar(500), LandingSuccess boolean, primary key(BoosterID, MissionNumber),foreign key(BoosterID) references Booster(BoosterID),foreign key(MissionNumber) references Mission(MissionNumber))";
 	}
 	static string getName() { return "flownBy";  }
 };
 LinkedList<flownBy> flownBys;
-flownBy* createFlownBy(Booster* BoosterID, Mission* MissionNumber, string LandingSite, string LandingOutcome) {
+flownBy* createFlownBy(Booster* BoosterID, Mission* MissionNumber, string LandingSite, string LandingOutcome, int LandingSuccess) {
 	flownBy f;
 	f.BoosterID = BoosterID;
 	f.MissionNumber = MissionNumber;
 	strcpy(LandingSite, f.LandingSite, 100);
 	strcpy(LandingOutcome, f.LandingOutcome, 500);
+	f.LandingSuccess = LandingSuccess;
 	flownBys.push_back(f);
 	return flownBys.back();
 }
@@ -488,7 +510,7 @@ string listflownBys() {
 	string result = "";
 	for (auto i = flownBys.begin(); i.hasNext(); i.operator++()) {
 		auto p = &i;
-		result += to_string(p->BoosterID->BoosterID, 5) + V() + to_string(p->MissionNumber->MissionNumber) + V() + to_string(p->LandingSite) + V() + to_string(p->LandingOutcome) + T();
+		result += to_string(p->BoosterID->BoosterID, 5) + V() + to_string(p->MissionNumber->MissionNumber) + V() + to_string(p->LandingSite) + V() + to_string(p->LandingOutcome) + V() + boolToListString(p->LandingSuccess) + T();
 	}
 	return result;
 }
@@ -501,6 +523,7 @@ struct Payload : public Relationship {
 	char MissionOutcome[500];
 	Dragon* DragonSerial;
 	Mission* MissionNumber; //Must not be null
+	int CrewMembers;
 
 	Payload()  {}
 	Payload(const Payload &other) {
@@ -514,6 +537,7 @@ struct Payload : public Relationship {
 		strmov(other.MissionOutcome, MissionOutcome, 500);
 		DragonSerial = other.DragonSerial;
 		MissionNumber = other.MissionNumber;
+		CrewMembers = other.CrewMembers;
 	}
 	virtual string insertTuple() {
 		string result = "insert into " + getName() + " values ( '" + sanitize(to_string(Title)) + "', ";
@@ -522,16 +546,18 @@ struct Payload : public Relationship {
 		result = Supplier[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(Supplier)) + "', ";
 		result = MissionOutcome[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(MissionOutcome)) + "', ";
 		result = DragonSerial == nullptr ? result + "NULL, " : result + "'" + to_string(DragonSerial->SerialNumber, 4) + "', ";
-		result += to_string(MissionNumber->MissionNumber) + ")";
+		result += to_string(MissionNumber->MissionNumber) + ", ";
+		result += to_string(CrewMembers);
+		result += ")";
 		return result;
 	}
 	static string createTable() {
-		return "create table " + getName() + " (Title varchar(100) not null,Orbit varchar(100),PayloadMass int,Supplier varchar(255),MissionOutcome varchar(500),DragonSerial char(4),MissionNumber int not null,primary key(Title),foreign key(DragonSerial) references Dragon(SerialNumber),foreign key(MissionNumber) references Mission(MissionNumber))";
+		return "create table " + getName() + " (Title varchar(100) not null,Orbit varchar(100),PayloadMass int,Supplier varchar(255),MissionOutcome varchar(500),DragonSerial char(4),MissionNumber int not null, CrewMembers int, primary key(Title),foreign key(DragonSerial) references Dragon(SerialNumber),foreign key(MissionNumber) references Mission(MissionNumber))";
 	}
 	static string getName() { return "Payload";  }
 };
 LinkedList<Payload> Payloads;
-Payload* createPayload(string Title, string Orbit, int PayloadMass, string Supplier, string MissionOutcome, Dragon* DragonSerial, Mission* MissionNumber) {
+Payload* createPayload(string Title, string Orbit, int PayloadMass, string Supplier, string MissionOutcome, Dragon* DragonSerial, Mission* MissionNumber, int CrewMembers) {
 	Payload p;
 	strcpy(Title, p.Title, 100);
 	strcpy(Orbit, p.Orbit, 100);
@@ -540,6 +566,7 @@ Payload* createPayload(string Title, string Orbit, int PayloadMass, string Suppl
 	strcpy(MissionOutcome, p.MissionOutcome, 500);
 	p.DragonSerial = DragonSerial;
 	p.MissionNumber = MissionNumber;
+	p.CrewMembers = CrewMembers;
 	Payloads.push_back(p);
 	return Payloads.back();
 }
@@ -558,7 +585,7 @@ string listPayloads() {
 		string payloadMass = p->PayloadMass != INT_MIN ? to_string(p->PayloadMass) : NullIndicator;
 		string dragonSerial = p->DragonSerial != nullptr ? to_string(p->DragonSerial->SerialNumber, 4) : NullIndicator;
 		result += to_string(p->Title) + V() + to_string(p->Orbit) + V() + payloadMass + V() + to_string(p->Supplier) + V() + to_string(p->MissionOutcome) + V()
-			+ dragonSerial + V() + to_string(p->MissionNumber->MissionNumber) + T();
+			+ dragonSerial + V() + to_string(p->MissionNumber->MissionNumber) + V() + to_string(p->CrewMembers) + T();
 	}
 	return result;
 }
@@ -617,55 +644,80 @@ string dropTable(string name) {
 	return "DROP TABLE IF EXISTS " + name;
 }
 
-void updateDatabase(string address, string schema, string username, string password) {
+string dropTuples(string name) {
+	return "DELETE FROM " + name;
+}
+
+void updateDatabase(string address, string schema, string username, string password, bool soft) {
 	cout << "Connecting to database at " << address << "..." << endl;
 	connectToDatabase(address, schema, username, password);
 
-	cout << "Dropping any pre-existing tables..." << endl;
-	//Drop tables if they exist
-	executeSQL(dropTable(flownBy::getName()));
-	executeSQL(dropTable(Payload::getName()));
-	executeSQL(dropTable(Booster::getName()));
-	executeSQL(dropTable(Dragon::getName()));
-	executeSQL(dropTable(Mission::getName()));
-	executeSQL(dropTable(LaunchSite::getName()));
+	if (isSQLConnected()) {
 
-	cout << "Creating tables..." << endl;
-	//Re-create the dropped tables
-	executeSQL(Booster::createTable());
-	executeSQL(Dragon::createTable());
-	executeSQL(LaunchSite::createTable());
-	executeSQL(Mission::createTable());
-	executeSQL(flownBy::createTable());
-	executeSQL(Payload::createTable());
+		if (soft) {
+			cout << "Dropping all tuples from tables..." << endl;
+			//drop all tuples
+			executeSQL(dropTuples(flownBy::getName()));
+			executeSQL(dropTuples(Payload::getName()));
+			executeSQL(dropTuples(Booster::getName()));
+			executeSQL(dropTuples(Dragon::getName()));
+			executeSQL(dropTuples(Mission::getName()));
+			executeSQL(dropTuples(LaunchSite::getName()));
+		}
+		else {
 
-	//Populate the database
-	cout << "Inserting tuples into " << Booster::getName() << "..." << endl;
-	for (auto iter = Boosters.begin(); iter.hasNext(); iter.operator++()) {
-		executeSQL((&iter)->insertTuple());
-	}
-	cout << "Inserting tuples into " << Dragon::getName() << "..." << endl;
-	for (auto iter = Dragons.begin(); iter.hasNext(); iter.operator++()) {
-		executeSQL((&iter)->insertTuple());
-	}
-	cout << "Inserting tuples into " << LaunchSite::getName() << "..." << endl;
-	for (auto iter = LaunchSites.begin(); iter.hasNext(); iter.operator++()) {
-		executeSQL((&iter)->insertTuple());
-	}
-	cout << "Inserting tuples into " << Mission::getName() << "..." << endl;
-	for (auto iter = Missions.begin(); iter.hasNext(); iter.operator++()) {
-		executeSQL((&iter)->insertTuple());
-	}
-	cout << "Inserting tuples into " << flownBy::getName() << "..." << endl;
-	for (auto iter = flownBys.begin(); iter.hasNext(); iter.operator++()) {
-		executeSQL((&iter)->insertTuple());
-	}
-	cout << "Inserting tuples into " << Payload::getName() << "..." << endl;
-	for (auto iter = Payloads.begin(); iter.hasNext(); iter.operator++()) {
-		executeSQL((&iter)->insertTuple());
-	}
+			cout << "Dropping any pre-existing tables..." << endl;
+			//Drop tables if they exist
+			executeSQL(dropTable(flownBy::getName()));
+			executeSQL(dropTable(Payload::getName()));
+			executeSQL(dropTable(Booster::getName()));
+			executeSQL(dropTable(Dragon::getName()));
+			executeSQL(dropTable(Mission::getName()));
+			executeSQL(dropTable(LaunchSite::getName()));
 
-	cout << "Complete. Disconnecting from database." << endl;
+			cout << "Creating tables..." << endl;
+			//Re-create the dropped tables
+			executeSQL(Booster::createTable());
+			executeSQL(Dragon::createTable());
+			executeSQL(LaunchSite::createTable());
+			executeSQL(Mission::createTable());
+			executeSQL(flownBy::createTable());
+			executeSQL(Payload::createTable());
 
-	disconnectFromDatabase();
+		}
+
+		//Populate the database
+		cout << "Inserting tuples into " << Booster::getName() << "..." << endl;
+		for (auto iter = Boosters.begin(); iter.hasNext(); iter.operator++()) {
+			executeSQL((&iter)->insertTuple());
+		}
+		cout << "Inserting tuples into " << Dragon::getName() << "..." << endl;
+		for (auto iter = Dragons.begin(); iter.hasNext(); iter.operator++()) {
+			executeSQL((&iter)->insertTuple());
+		}
+		cout << "Inserting tuples into " << LaunchSite::getName() << "..." << endl;
+		for (auto iter = LaunchSites.begin(); iter.hasNext(); iter.operator++()) {
+			executeSQL((&iter)->insertTuple());
+		}
+		cout << "Inserting tuples into " << Mission::getName() << "..." << endl;
+		for (auto iter = Missions.begin(); iter.hasNext(); iter.operator++()) {
+			executeSQL((&iter)->insertTuple());
+		}
+		cout << "Inserting tuples into " << flownBy::getName() << "..." << endl;
+		for (auto iter = flownBys.begin(); iter.hasNext(); iter.operator++()) {
+			executeSQL((&iter)->insertTuple());
+		}
+		cout << "Inserting tuples into " << Payload::getName() << "..." << endl;
+		for (auto iter = Payloads.begin(); iter.hasNext(); iter.operator++()) {
+			executeSQL((&iter)->insertTuple());
+		}
+
+		cout << "Complete. Disconnecting from database." << endl;
+
+		disconnectFromDatabase();
+
+	}
+	else {
+		cout << "Could not connect to database. Moving on." << endl;
+	}
 }
