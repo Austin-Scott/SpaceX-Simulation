@@ -58,7 +58,7 @@ struct PayloadName {
 	}
 };
 const int numOfPayloadNames=23;
-PayloadName payloadNames[] = { {"CRS-", "NASA (Cargo Resupply Services)", true, 2, 14, true}, {"CCS-", "NASA (Commercial Crew Services)", true, 2, 1, true}, {"Red Dragon-", "SpaceX", true, 4, 1, true}, {"SES-", "SES", false, 3, 12, false}, {"NROL-", "NROL", false, -1, 77, false}, {"Iridium NEXT ", "Iridium Communications", false, 1, 6, false}, {"STARLINK-", "SpaceX", false, 0, 1, true}, {"GovSat-", "GovSat", false, 3, 2, false}, {"X37B OTV-", "USAF", false, -1, 6, true}, {"Inmarsat-", "Inmarsat", false, 3, 6, false}, {"Space Tourism-", "SpaceX", true, -1, 1, true}, {"FormoSat-", "NSPO (Taiwan)", false, 6, 6, false }, {"EchoStar ", "EchoStar", false, 3, 106, false}, {"BulgariaSat-", "Bulgaria Sat", false, 3, 2, false}, {"Amos-", "Spacecom", false, 3, 7, false}, {"JCSAT-", "SKY Perfect JCSAT Group", false, 3, 17, false}, {"KoreaSat ", "KT Corporation", false, 3, 6, false}, {"Thaicom ", "Thaicom", false, 3, 9, false}, {"AsiaSat ", "AsiaSat", false, 0, 9, false}, {"Jason-", "NASA", false, 1, 4, false}, {"Eutelsat ", "Eutelsat", false, 3, 118, false}, {"Microsat-", "SpaceX", false, -1, 3, false}, {"Cubesats ", "NRO", false, -1, 2, false} };
+PayloadName payloadNames[] = { {"CRS-", "NASA (Cargo Resupply Services)", true, 2, 15, true}, {"CCS-", "NASA (Commercial Crew Services)", true, 2, 1, true}, {"Red Dragon-", "SpaceX", true, 4, 1, true}, {"SES-", "SES", false, 3, 12, false}, {"NROL-", "NROL", false, -1, 77, false}, {"Iridium NEXT ", "Iridium Communications", false, 1, 6, false}, {"STARLINK-", "SpaceX", false, 0, 1, true}, {"GovSat-", "GovSat", false, 3, 2, false}, {"X37B OTV-", "USAF", false, -1, 6, true}, {"Inmarsat-", "Inmarsat", false, 3, 6, false}, {"Space Tourism-", "SpaceX", true, -1, 1, true}, {"FormoSat-", "NSPO (Taiwan)", false, 6, 6, false }, {"EchoStar ", "EchoStar", false, 3, 106, false}, {"BulgariaSat-", "Bulgaria Sat", false, 3, 2, false}, {"Amos-", "Spacecom", false, 3, 7, false}, {"JCSAT-", "SKY Perfect JCSAT Group", false, 3, 17, false}, {"KoreaSat ", "KT Corporation", false, 3, 6, false}, {"Thaicom ", "Thaicom", false, 3, 9, false}, {"AsiaSat ", "AsiaSat", false, 0, 9, false}, {"Jason-", "NASA", false, 1, 4, false}, {"Eutelsat ", "Eutelsat", false, 3, 118, false}, {"Microsat-", "SpaceX", false, -1, 3, false}, {"Cubesats ", "NRO", false, -1, 2, false} };
 
 bool chanceOutOf1000(int n, default_random_engine &e) {
 	uniform_int_distribution<int> dist(1, 1000);
@@ -93,6 +93,7 @@ bool generateMission(default_random_engine &e) {
 	uniform_int_distribution<int> payloadChoices(0, numOfPayloadNames - 1);
 	int payloadChoice = payloadChoices(e);
 	string payloadName = payloadNames[payloadChoice].getName();
+	while(findPayload(payloadName)!=nullptr) payloadName = payloadNames[payloadChoice].getName();
 	//Step 2: Pick destination orbit
 	int destination;
 	if (payloadNames[payloadChoice].destination == -1) {
@@ -166,7 +167,9 @@ bool generateMission(default_random_engine &e) {
 			uniform_int_distribution<int> secondaryPayloadMassChoices(MINIMUM_PAYLOAD_WEIGHT, maxMass - primaryMass);
 			int secondaryPayloadMass = secondaryPayloadMassChoices(e);
 			//Step 12.3: Create secondary payload reference
-			payloads.push_back(createPayload(payloadNames[secondaryPayloadChoice].getName(), destinations[destination].name, secondaryPayloadMass, payloadNames[secondaryPayloadChoice].supplier, "", dragonCapsule, mission, 0));
+			string secondaryPayloadName = payloadNames[secondaryPayloadChoice].getName();
+			while(findPayload(secondaryPayloadName)!=nullptr) secondaryPayloadName = payloadNames[secondaryPayloadChoice].getName();
+			payloads.push_back(createPayload(secondaryPayloadName, destinations[destination].name, secondaryPayloadMass, payloadNames[secondaryPayloadChoice].supplier, "", dragonCapsule, mission, 0));
 			//Step 12.4: Reduce total payload capacity
 			primaryMass += secondaryPayloadMass;
 
