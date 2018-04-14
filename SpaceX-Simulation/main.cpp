@@ -87,12 +87,21 @@ int main(int argc, char** argv) {
 			return 0;
 		}
 	}
+	cout << "Adding real world Launch and Landing sites..." << endl;
+	addRealWorldLaunchSites();
+	addRealWorldLandingSites();
 	if(!skip)
 		getRealData();
+
+	cout << "Adding fictional Launch and Landing sites..." << endl;
+	addFictionalLandingSites();
+	addFictionalLaunchSites();
 	runSimulation();
+
 	if (directToDatabase)
 		updateDatabase(address, schema, username, password, soft);
 	if(!directToDatabase || (directToDatabase&&!exclusive))
 		writeResultsToFiles();
+
 	cleanAllData();
 }

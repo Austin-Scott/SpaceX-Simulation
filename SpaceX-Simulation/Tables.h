@@ -372,10 +372,10 @@ Payload* createPayload(string Title, Mission* MissionNumber, LaunchSite* Destina
 	Payloads.push_back(p);
 	return Payloads.back();
 }
-Payload* findPayload(string Title, Mission* MissionNumber) {
+Payload* findPayload(string Title) {
 	for (auto i = Payloads.begin(); i.hasNext(); i.operator++()) {
 		Payload* p = &i;
-		if (stringcmp(Title, p->Title, 100)&&p->MissionNumber==MissionNumber)
+		if (stringcmp(Title, p->Title, 100))
 			return p;
 	}
 	return nullptr;

@@ -25,6 +25,12 @@ Date today(endDate);
 
 const int numberOfLandingSites = 8;
 string landingSites[] = { "OCISLY", "JRTI", "ASOG", "LZ-1", "LZ-2", "VAFB LZ-1", "VAFB LZ-2", "ST LZ-1" };
+void addFictionalLandingSites() {
+	createLandingSite("VAFB LZ-1", "Vandenberg Air Force Base Landing Zone One", 0);
+	createLandingSite("VAFB LZ-2", "Vandenberg Air Force Base Landing Zone Two", 0);
+	createLandingSite("ST LZ-1", "South Texas Landing Zone One", 0);
+	createLandingSite("ASOG", "A Shortfall Of Gravitas", 0);
+}
 
 struct LaunchSiteName {
 	string name;
@@ -33,6 +39,10 @@ struct LaunchSiteName {
 };
 const int numOfLaunchSites = 4;
 LaunchSiteName launchSites[] = { {"ccafs_slc_40", "Cape Canaveral Air Force Station Space Launch Complex 40", {true, false, true, true, true, false, false, false}}, {"vafb_slc_4e", "Vandenberg Air Force Base Space Launch Complex 4E", {false, true, false, false, false, true, true, false}}, {"ksc_lc_39a", "Kennedy Space Center Historic Launch Complex 39A", {true, false, true, true, true, false, false, false} }, {"stls", "SpaceX South Texas Launch Site", {true, false, true, false, false, false, false, true}} };
+void addFictionalLaunchSites() {
+	createLaunchSite("stls", "SpaceX South Texas Launch Site", "Earth, North America, Texas", 1, 0);
+}
+
 
 struct Destination {
 	string name;
@@ -78,13 +88,13 @@ void updateHangers() {
 		string boosterID = "B";
 		boosterID += padWithZeros(to_string(highestBoosterNumber), 4);
 		highestBoosterNumber++;
-		flightActiveCores.addVehicle(createBooster(boosterID, "Active", 5));
+		flightActiveCores.addVehicle(createBooster(boosterID, "Active", "falcon9", 5));
 	}
 	while (flightActiveDragons.getNumOfVehicles() < MINIMUM_FLIGHT_READY_DRAGONS) {
 		string capsuleID = "C";
 		capsuleID += padWithZeros(to_string(highestCapsuleNumber), 3);
 		highestCapsuleNumber++;
-		flightActiveDragons.addVehicle(createDragon(capsuleID, "Freshly made Dragon Capsule", 1));
+		flightActiveDragons.addVehicle(createDragon(capsuleID, "Freshly made Dragon Capsule",0, 1));
 	}
 }
 
@@ -146,13 +156,13 @@ bool generateMission(default_random_engine &e) {
 		cores = flightActiveCores.getRandomVehicles(1, e);
 	}
 	//Step 9: Get/Create launchsite reference
-	LaunchSite* missionLaunchSite = findOrCreateLaunchSite(launchSites[launchSite].name, launchSites[launchSite].description);
+	LaunchSite* missionLaunchSite = findLaunchSite(launchSites[launchSite].name);
 	//Step 10: Create new mission reference
-	Mission* mission = createMission(highestMissionNumber, payloadName, "", today, missionLaunchSite, -1);
+	Mission* mission = createMission(highestMissionNumber,missionLaunchSite, payloadName, "", today,  -1);
 	highestMissionNumber++;
 	//Step 11: Create primary payload reference
 	vector<Payload*> payloads;
-	payloads.push_back(createPayload(payloadName, destinations[destination].name, primaryMass, payloadNames[payloadChoice].supplier, "", dragonCapsule, mission, crewMembers));
+	payloads.push_back(createPayload(payloadName,mission,nullptr,dragonCapsule, destinations[destination].name, primaryMass, payloadNames[payloadChoice].supplier, "", crewMembers));
 	//Step 12: Add secondary payload references
 	if (chanceOutOf1000(AVERAGE_FLIGHTS_WITH_SECONDARY_PAYLOADS_PER_1000, e)) {
 		maxMass += dragonMass;
@@ -169,7 +179,7 @@ bool generateMission(default_random_engine &e) {
 			//Step 12.3: Create secondary payload reference
 			string secondaryPayloadName = payloadNames[secondaryPayloadChoice].getName();
 			while(findPayload(secondaryPayloadName)!=nullptr) secondaryPayloadName = payloadNames[secondaryPayloadChoice].getName();
-			payloads.push_back(createPayload(secondaryPayloadName, destinations[destination].name, secondaryPayloadMass, payloadNames[secondaryPayloadChoice].supplier, "", dragonCapsule, mission, 0));
+			payloads.push_back(createPayload(secondaryPayloadName,mission, nullptr,dragonCapsule, destinations[destination].name, secondaryPayloadMass, payloadNames[secondaryPayloadChoice].supplier, "", 0));
 			//Step 12.4: Reduce total payload capacity
 			primaryMass += secondaryPayloadMass;
 
@@ -213,7 +223,7 @@ bool generateMission(default_random_engine &e) {
 			landingOutcome = "Precluded. Core destroyed during failed launch.";
 			strcpy("Destroyed", i->FlightStatus, 255);
 		}
-		flownBy* flight = createFlownBy(i, mission, sites.back(), landingOutcome, landingSuccess);
+		flownBy* flight = createFlownBy(i, mission, findLandingSite(sites.back()), landingOutcome, landingSuccess);
 		sites.pop_back();
 	}
 	//Step 16: Update payloads
