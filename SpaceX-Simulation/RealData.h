@@ -1,6 +1,4 @@
 #pragma once
-#include <stdio.h>
-#include <time.h>
 
 #include "Hanger.h"
 
@@ -9,37 +7,11 @@
 
 using namespace rapidjson;
 
-const string getCurrentDate() {
-	time_t now = time(0);
-	struct tm tstruct;
-	char buf[80];
-	tstruct = *localtime(&now);
-	strftime(buf, sizeof(buf), "%Y-%m-%d", &tstruct);
-	return buf;
-}
-
 const string startDate = "2010-06-04";
 const string endDate = getCurrentDate();
 int highestMissionNumber = 0;
 int highestBoosterNumber = 0;
 int highestCapsuleNumber = 0;
-
-//Used for interacting with Curl to download SpaceX api responses
-string executeSystemCommand(string cmd) {
-	string data;
-	FILE * stream;
-	const int max_buffer = 256;
-	char buffer[max_buffer];
-	cmd.append(" 2>&1");
-	stream = _popen(cmd.c_str(), "r");
-	if (stream) {
-		while (!feof(stream)) {
-			if (fgets(buffer, max_buffer, stream) != NULL) data.append(buffer);
-		}
-		_pclose(stream);
-	}
-	return data;
-}
 
 string downloadMissionData() {
 	string command = "curl -k -s ";

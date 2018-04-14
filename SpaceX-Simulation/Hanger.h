@@ -1,6 +1,4 @@
 #pragma once
-#include "Tables.h"
-#include <random>
 
 template<class T> struct StoredVehicle {
 	T* vehicle;

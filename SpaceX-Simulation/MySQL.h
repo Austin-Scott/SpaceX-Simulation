@@ -7,13 +7,6 @@ sql::Driver *driver=nullptr;
 sql::Connection *con=nullptr;
 sql::Statement *stmt = nullptr;
 
-class Relationship {
-private:
-
-public:
-	virtual string insertTuple() = 0;
-};
-
 void connectToDatabase(string address, string schema, string username, string password) {
 	try {
 		driver = get_driver_instance();
@@ -69,3 +62,10 @@ void disconnectFromDatabase() {
 	delete con;
 }
 
+string dropTable(string name) {
+	return "DROP TABLE IF EXISTS " + name;
+}
+
+string dropTuples(string name) {
+	return "DELETE FROM " + name;
+}

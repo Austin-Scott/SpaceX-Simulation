@@ -3,87 +3,14 @@
 #include <vector>
 #include <sstream>
 
-#include "LinkedList.h"
-
-using namespace std;
-
 const char ValueDeliminator = '|';
 const char TupleDeliminator = '\n';
 const string NullIndicator = "\\N";
 
-string to_string(char* c, int size) {
-	string result(c, size);
-	if (size > 0 && c[0] == '\0') return NullIndicator;
-	return result;
-}
-string to_string(char* c) {
-	string result(c);
-	if (c[0] == '\0') return NullIndicator;
-	return result;
-}
-string to_string(char c) {
-	string result = "";
-	result.push_back(c);
-	if (c == '\0') return NullIndicator;
-	return result;
-}
-string V() {
-	return to_string(ValueDeliminator);
-}
-string T() {
-	return to_string(TupleDeliminator);
-}
-string sanitize(string dirty) {
-	string result = "";
-	for (int i = 0; i < dirty.size(); i++) {
-		if (dirty[i] == '\'') {
-			result.push_back('\'');
-			result.push_back('\'');
-		}
-		else {
-			result.push_back(dirty[i]);
-		}
-	}
-	return result;
-}
-void strcpy(string src, char* dest, int n, bool varlength=true) {
-	int end = varlength ? n - 1 : n;
-	for (int i = 0; i < end; i++) {
-		if (i < src.size()) {
-			dest[i] = src[i];
-		}
-		else {
-			dest[i] = '\0';
-		}
-	}
-	if(varlength)
-		dest[n - 1] = '\0';
-}
-void strmov(const char* src, char* dest, int n) {
-	for (int i = 0; i < n; i++) {
-		dest[i] = src[i];
-	}
-}
-bool stringcmp(string a, char* b, int n, bool varlength = true) {
-	for (int i = 0; i < n; i++) {
-		if (varlength&&(i >= a.size() || i == n - 1) && b[i] == '\0') return true;
-		if (!varlength&&i == n - 1 && a.size() == n&&a[i] == b[i]) return true;
-		if (i >= a.size() || a[i] != b[i]) return false;
-	}
-	return false;
-}
-string boolToString(int boolean) {
-	if (boolean == 1) return "true";
-	else if (boolean == 0) return "false";
-	else return "NULL";
-}
-string boolToListString(int boolean) {
-	if (boolean == 1) return "1";
-	else if (boolean == 0) return "0";
-	else return NullIndicator;
-}
+#include "Utility.h"
 
-struct Booster : public Relationship {
+//Booster table
+struct Booster {
 	char BoosterID[5]; //Primary Key
 	char FlightStatus[255];
 	int BlockNumber;
@@ -91,17 +18,7 @@ struct Booster : public Relationship {
 	//Stored data not used in final database
 	int flights;
 
-	Booster()  {}
-	Booster(const Booster &other)  {
-		operator=(other);
-	}
-	void operator=(const Booster &other) {
-		strmov(other.BoosterID, BoosterID, 5);
-		strmov(other.FlightStatus, FlightStatus, 255);
-		BlockNumber = other.BlockNumber;
-		flights = other.flights;
-	}
-	virtual string insertTuple() {
+	string insertTuple() {
 		string result = "insert into " + getName() + " values ( '" + to_string(BoosterID, 5) + "', ";
 		result = FlightStatus[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(FlightStatus))+ "', ";
 		result = BlockNumber == INT_MIN ? result + "NULL" : result + to_string(BlockNumber);
@@ -140,21 +57,14 @@ string listBoosters() {
 	}
 	return result;
 }
+//End Booster table
 
-struct Dragon : public Relationship {
+//Dragon table
+struct Dragon {
 	char SerialNumber[4]; //Primary Key
 	char Description[500];
 	int FlightActive; //-1=null, 0=false, 1=true
 
-	Dragon()  {}
-	Dragon(const Dragon &other)  {
-		operator=(other);
-	}
-	void operator=(const Dragon &other) {
-		strmov(other.SerialNumber, SerialNumber, 4);
-		strmov(other.Description, Description, 500);
-		FlightActive = other.FlightActive;
-	}
 	virtual string insertTuple() {
 		string result = "insert into " + getName() + " values ( '" + to_string(SerialNumber, 4) + "', ";
 		result = Description[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(Description)) + "', ";
@@ -192,19 +102,13 @@ string listDragons() {
 	}
 	return result;
 }
+//End Dragon table
 
-struct LaunchSite : public Relationship {
+//LaunchSite table
+struct LaunchSite {
 	char Name[100]; //Primary Key
 	char Location[255];
 
-	LaunchSite()  {}
-	LaunchSite(const LaunchSite &other)  {
-		operator=(other);
-	}
-	void operator=(const LaunchSite &other) {
-		strmov(other.Name, Name, 100);
-		strmov(other.Location, Location, 255);
-	}
 	virtual string insertTuple() {
 		string result = "insert into " + getName() + " values ( '" + to_string(Name) + "', ";
 		result = Location[0] == '\0' ? result + "NULL" : result + "'" + sanitize(to_string(Location)) + "'";
@@ -249,151 +153,10 @@ string listLaunchSites() {
 	}
 	return result;
 }
+//End LaunchSite table
 
-int getDaysInMonth(int month, int year) {
-	if (month != 2) {
-		if (month < 8) {
-			if (month % 2 == 0) {
-				return 30;
-			}
-			else {
-				return 31;
-			}
-		}
-		else {
-			if (month % 2 == 0) {
-				return 31;
-			}
-			else {
-				return 30;
-			}
-		}
-	}
-	else {
-		if (year % 4 == 0 && (year % 100 != 0 || (year % 100 == 0 && year % 400 == 0))) { //If it is a leap year
-			return 29;
-		}
-		else {
-			return 28;
-		}
-	}
-}
-struct Date { //Meta-Structure for holding dates
-	int day; 
-	int month;
-	int year; //Such as: 2018
-	Date() {}
-	Date(string date) { //Format YYYY-MM-DD
-		if (date.size() == 10) {
-			year = atoi(date.substr(0, 4).c_str());
-			month = atoi(date.substr(5, 2).c_str());
-			day = atoi(date.substr(8, 2).c_str());
-		}
-		else {
-			year = 0;
-			month = 0;
-			day = 0;
-		}
-	}
-	Date(int year, int month, int day) {
-		this->year = year;
-		this->month = month;
-		this->day = day;
-	}
-	Date operator+(int days) { //Advance time by "days" days
-		Date result = *this;
-		for (int i = 0; i < days; i++) {
-			result.day++;
-			if (result.day > getDaysInMonth(result.month, result.year)) {
-				result.day = 1;
-				result.month++;
-				if (result.month > 12) {
-					result.month = 1;
-					result.year++;
-				}
-			}
-		}
-		return result;
-	}
-	void operator+=(int days) {
-		Date result = operator+(days);
-		day = result.day;
-		month = result.month;
-		year = result.year;
-	}
-	bool operator==(Date other) {
-		return year == other.year&&month == other.month&&day == other.day;
-	}
-	bool operator!=(Date other) {
-		return !operator==(other);
-	}
-	bool operator>(Date other) {
-		if (year > other.year) {
-			return true;
-		}
-		else if (year < other.year) {
-			return false;
-		}
-		else {
-			if (month > other.month) {
-				return true;
-			}
-			else if (month < other.month) {
-				return false;
-			}
-			else {
-				if (day > other.day) {
-					return true;
-				}
-				else if (day < other.day) {
-					return false;
-				}
-				else {
-					return false;
-				}
-			}
-		}
-	}
-	int operator-(Date other) { //Get number of days between this date and other date
-		int result = 0;
-		if (operator>(other)) {
-			while (other != *this) {
-				result++;
-				other += 1;
-			}
-		}
-		else {
-			Date temp = *this;
-			while (temp != other) {
-				result++;
-				temp += 1;
-			}
-		}
-		return result;
-	}
-};
-string padWithZeros(string str, int width) {
-	if (str.size() < width) {
-		int zeros = width - str.size();
-		for (int i = 0; i < zeros; i++) {
-			str = '0' + str;
-		}
-	}
-	return str;
-}
-string to_string(Date date) {
-	string result;
-	string sYear = to_string(date.year);
-	sYear = padWithZeros(sYear, 4);
-	string sMonth = to_string(date.month);
-	sMonth = padWithZeros(sMonth, 2);
-	string sDay = to_string(date.day);
-	sDay = padWithZeros(sDay, 2);
-	result = sYear + "-" + sMonth + "-" + sDay;
-	return result;
-}
-
-struct Mission : public Relationship {
+//Mission table
+struct Mission {
 	int MissionNumber; //Primary Key
 	char Title[255];
 	char Description[500];
@@ -401,18 +164,6 @@ struct Mission : public Relationship {
 	LaunchSite* LaunchSiteName;
 	int LaunchSuccess; //-1=null, 0=false, 1=true
 
-	Mission()  {}
-	Mission(const Mission &other)  {
-		operator=(other);
-	}
-	void operator=(const Mission &other) {
-		MissionNumber = other.MissionNumber;
-		strmov(other.Title, Title, 255);
-		strmov(other.Description, Description, 500);
-		date = other.date;
-		LaunchSiteName = other.LaunchSiteName;
-		LaunchSuccess = other.LaunchSuccess;
-	}
 	virtual string insertTuple() {
 		string result = "insert into " + getName() + " values ( " + to_string(MissionNumber) + ", ";
 		result = Title[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(Title)) + "', ";
@@ -455,25 +206,16 @@ string listMissions() {
 	}
 	return result;
 }
+//End Mission Table
 
-struct flownBy : public Relationship {
+//flownBy table
+struct flownBy {
 	Booster* BoosterID; //Primary Key
 	Mission* MissionNumber; //Primary Key
 	char LandingSite[100];
 	char LandingOutcome[500];
 	int LandingSuccess; //-1=null, 0=false, 1=true
 
-	flownBy()  {}
-	flownBy(const flownBy &other) {
-		operator=(other);
-	}
-	void operator=(const flownBy &other) {
-		BoosterID = other.BoosterID;
-		MissionNumber = other.MissionNumber;
-		strmov(other.LandingSite, LandingSite, 100);
-		strmov(other.LandingOutcome, LandingOutcome, 500);
-		LandingSuccess = other.LandingSuccess;
-	}
 	virtual string insertTuple() {
 		string result = "insert into " + getName() + " values ( '" + to_string(BoosterID->BoosterID, 5) + "', " + to_string(MissionNumber->MissionNumber) + ", ";
 		result = LandingSite[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(LandingSite)) + "', ";
@@ -514,8 +256,10 @@ string listflownBys() {
 	}
 	return result;
 }
+//End flownBy table
 
-struct Payload : public Relationship {
+//Payload table
+struct Payload {
 	char Title[100]; //Primary Key
 	char Orbit[100];
 	int PayloadMass;
@@ -525,20 +269,6 @@ struct Payload : public Relationship {
 	Mission* MissionNumber; //Must not be null
 	int CrewMembers;
 
-	Payload()  {}
-	Payload(const Payload &other) {
-		operator=(other);
-	}
-	void operator=(const Payload &other) {
-		strmov(other.Title, Title, 100);
-		strmov(other.Orbit, Orbit, 100);
-		PayloadMass = other.PayloadMass;
-		strmov(other.Supplier, Supplier, 255);
-		strmov(other.MissionOutcome, MissionOutcome, 500);
-		DragonSerial = other.DragonSerial;
-		MissionNumber = other.MissionNumber;
-		CrewMembers = other.CrewMembers;
-	}
 	virtual string insertTuple() {
 		string result = "insert into " + getName() + " values ( '" + sanitize(to_string(Title)) + "', ";
 		result = Orbit[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(Orbit)) + "', ";
@@ -589,6 +319,10 @@ string listPayloads() {
 	}
 	return result;
 }
+//End Payload table
+
+//Functions involving all tables
+
 void cleanAllData() {
 	Boosters.deleteAll();
 	flownBys.deleteAll();
@@ -638,14 +372,6 @@ void writeResultsToFiles() {
 	LaunchSiteFile.close();
 
 	cout << "Done." << endl;
-}
-
-string dropTable(string name) {
-	return "DROP TABLE IF EXISTS " + name;
-}
-
-string dropTuples(string name) {
-	return "DELETE FROM " + name;
 }
 
 void updateDatabase(string address, string schema, string username, string password, bool soft) {
