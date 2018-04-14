@@ -155,6 +155,59 @@ string listLaunchSites() {
 }
 //End LaunchSite table
 
+//LandingSite table
+struct LandingSite {
+	char SiteID[25]; //Primary Key
+	char Name[255];
+	int BFR; //-1=null, 0=false, 1=true
+
+	virtual string insertTuple() {
+		string result = "insert into " + getName() + " values ( '" + to_string(SiteID) + "', ";
+		result = Name[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(Name)) + "', ";
+		result += boolToString(BFR);
+		result += ")";
+		return result;
+	}
+	static string createTable() {
+		return "create table " + getName() + " (SiteID varchar(25) not null,Name varchar(255), BFR boolean, primary key(SiteID))";
+	}
+	static string getName() { return "LandingSite"; }
+};
+LinkedList<LandingSite> LandingSites;
+LandingSite* createLandingSite(string SiteID, string Name, int BFR) {
+	LandingSite l;
+	strcpy(SiteID, l.SiteID, 25);
+	strcpy(Name, l.Name, 255);
+	LandingSites.push_back(l);
+	return LandingSites.back();
+}
+LandingSite* findLandingSite(string SiteID) {
+	for (auto i = LandingSites.begin(); i.hasNext(); i.operator++()) {
+		LandingSite* p = &i;
+		if (stringcmp(SiteID, p->SiteID, 25))
+			return p;
+	}
+	return nullptr;
+}
+LandingSite* findOrCreateLandingSite(string SiteID, string Name, int BFR) {
+	LandingSite* result = findLandingSite(SiteID);
+	if (result == nullptr) {
+		return createLandingSite(SiteID, Name, BFR);
+	}
+	else {
+		return result;
+	}
+}
+string listLandingSites() {
+	string result = "";
+	for (auto i = LandingSites.begin(); i.hasNext(); i.operator++()) {
+		auto p = &i;
+		result += to_string(p->SiteID) + V() + to_string(p->Name) + V() + boolToListString(p->BFR) + T();
+	}
+	return result;
+}
+//End LandingSite table
+
 //Mission table
 struct Mission {
 	int MissionNumber; //Primary Key
@@ -371,6 +424,12 @@ void writeResultsToFiles() {
 	}
 	LaunchSiteFile.close();
 
+	ofstream LandingSiteFile("output/LandingSite.txt", ios::out);
+	if (LandingSiteFile) {
+		LandingSiteFile << listLandingSites();
+	}
+	LandingSiteFile.close();
+
 	cout << "Done." << endl;
 }
 
@@ -389,6 +448,7 @@ void updateDatabase(string address, string schema, string username, string passw
 			executeSQL(dropTuples(Dragon::getName()));
 			executeSQL(dropTuples(Mission::getName()));
 			executeSQL(dropTuples(LaunchSite::getName()));
+			executeSQL(dropTuples(LandingSite::getName()));
 		}
 		else {
 
@@ -400,11 +460,13 @@ void updateDatabase(string address, string schema, string username, string passw
 			executeSQL(dropTable(Dragon::getName()));
 			executeSQL(dropTable(Mission::getName()));
 			executeSQL(dropTable(LaunchSite::getName()));
+			executeSQL(dropTable(LandingSite::getName()));
 
 			cout << "Creating tables..." << endl;
 			//Re-create the dropped tables
 			executeSQL(Booster::createTable());
 			executeSQL(Dragon::createTable());
+			executeSQL(LandingSite::createTable());
 			executeSQL(LaunchSite::createTable());
 			executeSQL(Mission::createTable());
 			executeSQL(flownBy::createTable());
@@ -423,6 +485,10 @@ void updateDatabase(string address, string schema, string username, string passw
 		}
 		cout << "Inserting tuples into " << LaunchSite::getName() << "..." << endl;
 		for (auto iter = LaunchSites.begin(); iter.hasNext(); iter.operator++()) {
+			executeSQL((&iter)->insertTuple());
+		}
+		cout << "Inserting tuples into " << LandingSite::getName() << "..." << endl;
+		for (auto iter = LandingSites.begin(); iter.hasNext(); iter.operator++()) {
 			executeSQL((&iter)->insertTuple());
 		}
 		cout << "Inserting tuples into " << Mission::getName() << "..." << endl;
