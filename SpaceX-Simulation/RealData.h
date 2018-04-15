@@ -161,7 +161,7 @@ void prepareBoosterForSimulation(Booster* booster) {
 			flightActiveCores.addVehicle(booster);
 		}
 		else {
-			strcpy(status, booster->FlightStatus, 255);
+			strcpy(status, booster->FlightStatus, 50);
 		}
 	}
 }
@@ -181,7 +181,7 @@ void prepareCapsuleForSimulation(Dragon* capsule) {
 	doc.Parse(result.c_str());
 	string description = getString(doc, "details");
 	if (description.size() > 0) {
-		strcpy(description, capsule->Description, 500);
+		strcpy(description, capsule->Description, 400);
 	}
 	if (getString(doc, "status") == "active") {
 		flightActiveDragons.addVehicle(capsule);

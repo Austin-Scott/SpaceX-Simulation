@@ -210,18 +210,18 @@ bool generateMission(default_random_engine &e) {
 					flightActiveCores.addVehicle(i);
 				}
 				else {
-					strcpy("Retired", i->FlightStatus, 255);
+					strcpy("Retired", i->FlightStatus, 50);
 				}
 			}
 			else {
 				landingSuccess = 0;
 				landingOutcome = "Rapid unscheduled dissasembly.";
-				strcpy("Destroyed", i->FlightStatus, 255);
+				strcpy("Destroyed", i->FlightStatus, 50);
 			}
 		}
 		else {
 			landingOutcome = "Precluded. Core destroyed during failed launch.";
-			strcpy("Destroyed", i->FlightStatus, 255);
+			strcpy("Destroyed", i->FlightStatus, 50);
 		}
 		flownBy* flight = createFlownBy(i, mission, findLandingSite(sites.back()), landingOutcome, landingSuccess);
 		sites.pop_back();
@@ -229,28 +229,28 @@ bool generateMission(default_random_engine &e) {
 	//Step 16: Update payloads
 	for (auto i : payloads) {
 		if (successfulLaunch) {
-			strcpy("Complete success.", i->MissionOutcome, 255);
+			strcpy("Complete success.", i->MissionOutcome, 50);
 		}
 		else {
-			strcpy("Mission failed. Payload destroyed.", i->MissionOutcome, 255);
+			strcpy("Mission failed. Payload destroyed.", i->MissionOutcome, 50);
 		}
 	}
 	if (payloadNames[payloadChoice].requiresDragon && successfulLaunch) {
 		if (payloadChoice == 2) {
 			string description = "Sent to Mars on " + to_string(today) + " with no hope to return.";
 			dragonCapsule->FlightActive = 0;
-			strcpy(description, dragonCapsule->Description, 500);
+			strcpy(description, dragonCapsule->Description, 400);
 		}
 		else {
 			dragonsInSpace.addVehicle(dragonCapsule, today);
 			string description = "Last flown on " + payloadName + " to " + destinations[destination].name + " on " + to_string(today) + ".";
-			strcpy(description, dragonCapsule->Description, 500);
+			strcpy(description, dragonCapsule->Description, 400);
 		}
 	}
 	else if (payloadNames[payloadChoice].requiresDragon) {
 		string description = "Destroyed on failed " + payloadName + " launch to " + destinations[destination].name + " on " + to_string(today) + ".";
 		dragonCapsule->FlightActive = 0;
-		strcpy(description, dragonCapsule->Description, 500);
+		strcpy(description, dragonCapsule->Description, 400);
 	}
 	//Step 17: Create mission description
 	string description;
@@ -313,7 +313,7 @@ bool generateMission(default_random_engine &e) {
 		description += " Mission failed.";
 	}
 
-	strcpy(description, mission->Description, 500);
+	strcpy(description, mission->Description, 400);
 
 	return true;
 }

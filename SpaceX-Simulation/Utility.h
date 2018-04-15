@@ -55,6 +55,7 @@ public:
 	}
 	void push_back(const T &item) {
 		Node<T>* newNode = new Node<T>(item);
+		newNode->next = nullptr;
 		if (size == 0) {
 			Head = newNode;
 		}
