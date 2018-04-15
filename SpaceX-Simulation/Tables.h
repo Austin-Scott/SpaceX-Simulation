@@ -373,7 +373,7 @@ string listflownBys() {
 struct Payload {
 	char Title[100]; //Primary Key
 	Mission* MissionNumber; //Primary Key
-	LaunchSite* DestinationSite; //Foreign Key
+	LandingSite* DestinationSite; //Foreign Key
 	Dragon* DragonSerial; //Foreign Key
 	char Orbit[50];
 	int PayloadMass;
@@ -395,12 +395,12 @@ struct Payload {
 		return result;
 	}
 	static string createTable() {
-		return "create table " + getName() + " (Title varchar(100) not null, MissionNumber int not null, DestinationSite varchar(25), DragonSerial char(4), Orbit varchar(50),PayloadMass int,Supplier varchar(50),MissionOutcome varchar(50), CrewMembers int, primary key(Title, MissionNumber), foreign key(DestinationSite) references LaunchSite(SiteID), foreign key(DragonSerial) references Dragon(SerialNumber),foreign key(MissionNumber) references Mission(MissionNumber))";
+		return "create table " + getName() + " (Title varchar(100) not null, MissionNumber int not null, DestinationSite varchar(25), DragonSerial char(4), Orbit varchar(50),PayloadMass int,Supplier varchar(50),MissionOutcome varchar(50), CrewMembers int, primary key(Title, MissionNumber), foreign key(DestinationSite) references LandingSite(SiteID), foreign key(DragonSerial) references Dragon(SerialNumber),foreign key(MissionNumber) references Mission(MissionNumber))";
 	}
 	static string getName() { return "Payload";  }
 };
 LinkedList<Payload> Payloads;
-Payload* createPayload(string Title, Mission* MissionNumber, LaunchSite* DestinationSite, Dragon* DragonSerial, string Orbit, int PayloadMass, string Supplier, string MissionOutcome, int CrewMembers) {
+Payload* createPayload(string Title, Mission* MissionNumber, LandingSite* DestinationSite, Dragon* DragonSerial, string Orbit, int PayloadMass, string Supplier, string MissionOutcome, int CrewMembers) {
 	Payload p;
 	strcpy(Title, p.Title, 100);
 	p.MissionNumber = MissionNumber;

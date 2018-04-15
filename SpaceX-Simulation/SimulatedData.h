@@ -1,11 +1,13 @@
 #pragma once
-#include <random>
 #include <time.h>
 #include <algorithm>
 
+int currentNumberOfFlights = 0;
+Date today(endDate);
+
 #include "BFR_Simulation.h"
 
-int FLIGHTS_TO_PERFORM = 2000;
+int FLIGHTS_TO_PERFORM = 3000;
 int AVERAGE_FLIGHTS_PER_MONTH = 5;
 int AVERAGE_FALCON_HEAVY_FLIGHTS_PER_1000 = 75;
 int AVERAGE_SUCCESSFUL_LAUNCHES_PER_1000 = 996;
@@ -20,10 +22,6 @@ int MINIMUM_FLIGHT_READY_DRAGONS = 2;
 int MAXIMUM_SECONDARY_PAYLOADS = 3;
 int AVERAGE_FLIGHTS_WITH_SECONDARY_PAYLOADS_PER_1000 = 250;
 int DRAGON_CREW_CAPACITY = 7;
-
-
-int currentNumberOfFlights = 0;
-Date today(endDate);
 
 const int numberOfLandingSites = 8;
 string landingSites[] = { "OCISLY", "JRTI", "ASOG", "LZ-1", "LZ-2", "VAFB LZ-1", "VAFB LZ-2", "ST LZ-1" };
@@ -73,18 +71,6 @@ struct PayloadName {
 };
 const int numOfPayloadNames=23;
 PayloadName payloadNames[] = { {"CRS-", "NASA (Cargo Resupply Services)", true, 2, 15, true}, {"CCS-", "NASA (Commercial Crew Services)", true, 2, 1, true}, {"Red Dragon-", "SpaceX", true, 4, 1, true}, {"SES-", "SES", false, 3, 12, false}, {"NROL-", "NROL", false, -1, 77, false}, {"Iridium NEXT ", "Iridium Communications", false, 1, 6, false}, {"STARLINK-", "SpaceX", false, 0, 1, true}, {"GovSat-", "GovSat", false, 3, 2, false}, {"X37B OTV-", "USAF", false, -1, 6, true}, {"Inmarsat-", "Inmarsat", false, 3, 6, false}, {"Space Tourism-", "SpaceX", true, -1, 1, true}, {"FormoSat-", "NSPO (Taiwan)", false, 6, 6, false }, {"EchoStar ", "EchoStar", false, 3, 106, false}, {"BulgariaSat-", "Bulgaria Sat", false, 3, 2, false}, {"Amos-", "Spacecom", false, 3, 7, false}, {"JCSAT-", "SKY Perfect JCSAT Group", false, 3, 17, false}, {"KoreaSat ", "KT Corporation", false, 3, 6, false}, {"Thaicom ", "Thaicom", false, 3, 9, false}, {"AsiaSat ", "AsiaSat", false, 0, 9, false}, {"Jason-", "NASA", false, 1, 4, false}, {"Eutelsat ", "Eutelsat", false, 3, 118, false}, {"Microsat-", "SpaceX", false, -1, 3, false}, {"Cubesats ", "NRO", false, -1, 2, false} };
-
-bool chanceOutOf1000(int n, default_random_engine &e) {
-	uniform_int_distribution<int> dist(1, 1000);
-	int guess = dist(e);
-	return guess <= n;
-}
-
-bool chanceOutOf30(int n, default_random_engine &e) {
-	uniform_int_distribution<int> dist(1, 30);
-	int guess = dist(e);
-	return guess <= n;
-}
 
 void updateHangers() {
 	flightActiveDragons.addVehicles(dragonsInSpace.getVehiclesOlderThan(today, DRAGON_DAYS_BETWEEN_FLIGHTS), today);
@@ -320,7 +306,7 @@ bool generateMission(default_random_engine &e) {
 void runSimulation() {
 	cout << "Starting simulation mode..." << endl;
 
-	default_random_engine e;
+	default_random_engine e(time(0));
 
 	while (currentNumberOfFlights < FLIGHTS_TO_PERFORM) {
 		updateHangers();
@@ -330,7 +316,7 @@ void runSimulation() {
 			currentNumberOfFlights++;
 		}
 		if (today > BFR_FLIGHT_OPERATIONAL) {
-			BFRFlights();
+			BFRFlights(e);
 		}
 		today += 1; //Advance time forward by one day
 	}

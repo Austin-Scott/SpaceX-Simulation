@@ -1,6 +1,7 @@
 #pragma once
 #include <stdio.h>
 #include <time.h>
+#include <random>
 
 //Linked List implementation
 template<class T> struct Node {
@@ -339,4 +340,16 @@ string executeSystemCommand(string cmd) {
 		_pclose(stream);
 	}
 	return data;
+}
+
+bool chanceOutOf1000(int n, default_random_engine &e) {
+	uniform_int_distribution<int> dist(1, 1000);
+	int guess = dist(e);
+	return guess <= n;
+}
+
+bool chanceOutOf30(int n, default_random_engine &e) {
+	uniform_int_distribution<int> dist(1, 30);
+	int guess = dist(e);
+	return guess <= n;
 }

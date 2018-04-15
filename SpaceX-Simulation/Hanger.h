@@ -80,6 +80,12 @@ public:
 		removeVehicles(result);
 		return result;
 	}
+	T* getFirstVehicle() {
+		if (storedVehicles.size() == 0) return nullptr;
+		T* result = storedVehicles.back().vehicle;
+		storedVehicles.pop_back();
+		return result;
+	}
 };
 
 Hanger<Booster> flightActiveCores;
