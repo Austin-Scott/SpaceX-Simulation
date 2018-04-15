@@ -3,6 +3,8 @@
 #include <time.h>
 #include <algorithm>
 
+#include "BFR_Simulation.h"
+
 int FLIGHTS_TO_PERFORM = 2000;
 int AVERAGE_FLIGHTS_PER_MONTH = 5;
 int AVERAGE_FALCON_HEAVY_FLIGHTS_PER_1000 = 75;

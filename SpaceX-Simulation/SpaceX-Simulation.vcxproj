@@ -137,6 +137,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BFR_Simulation.h" />
     <ClInclude Include="Hanger.h" />
     <ClInclude Include="MySQL.h" />
     <ClInclude Include="RealData.h" />
