@@ -249,9 +249,11 @@ void getRealData() {
 			Dragon* capsule = findDragon(capsuleID);
 			if (capsule != nullptr) {
 				cout << "Parsing detailed information about Dragon " << capsuleID << "..." << endl;
+				string description = getString(root[i], "details");
 				if (description.size() > 0) {
 					strcpy(description, capsule->Description, 400);
 				}
+				if (getString(root[i], "status") == "active") {
 					//Make this Dragon available in the simulation
 					flightActiveDragons.addVehicle(capsule);
 				}
