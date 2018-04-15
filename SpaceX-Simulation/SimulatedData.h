@@ -32,6 +32,7 @@ void addFictionalLandingSites() {
 	createLandingSite("VAFB LZ-2", "Vandenberg Air Force Base Landing Zone Two", 0);
 	createLandingSite("ST LZ-1", "South Texas Landing Zone One", 0);
 	createLandingSite("ASOG", "A Shortfall Of Gravitas", 0);
+	addPlanetaryBFRPads();
 }
 
 struct LaunchSiteName {
@@ -43,6 +44,7 @@ const int numOfLaunchSites = 4;
 LaunchSiteName launchSites[] = { {"ccafs_slc_40", "Cape Canaveral Air Force Station Space Launch Complex 40", {true, false, true, true, true, false, false, false}}, {"vafb_slc_4e", "Vandenberg Air Force Base Space Launch Complex 4E", {false, true, false, false, false, true, true, false}}, {"ksc_lc_39a", "Kennedy Space Center Historic Launch Complex 39A", {true, false, true, true, true, false, false, false} }, {"stls", "SpaceX South Texas Launch Site", {true, false, true, false, false, false, false, true}} };
 void addFictionalLaunchSites() {
 	createLaunchSite("stls", "SpaceX South Texas Launch Site", "Earth, North America, Texas", 1, 0);
+	addExtraPlanetaryBFRPads();
 }
 
 
@@ -326,6 +328,9 @@ void runSimulation() {
 			cout << "Generating simulated mission #" << Mission::getNextAvailableMissionNumber() << "..." << endl;
 			generateMission(e);
 			currentNumberOfFlights++;
+		}
+		if (today > BFR_FLIGHT_OPERATIONAL) {
+			BFRFlights();
 		}
 		today += 1; //Advance time forward by one day
 	}
