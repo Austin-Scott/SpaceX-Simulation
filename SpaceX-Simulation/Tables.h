@@ -193,6 +193,7 @@ LandingSite* createLandingSite(string SiteID, string Name, int BFR) {
 	LandingSite l;
 	strcpy(SiteID, l.SiteID, 25);
 	strcpy(Name, l.Name, 255);
+	l.BFR = BFR;
 	LandingSites.push_back(l);
 	return LandingSites.back();
 }
