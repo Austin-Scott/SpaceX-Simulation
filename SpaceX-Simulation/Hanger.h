@@ -1,4 +1,5 @@
 #pragma once
+#include <random>
 
 template<class T> struct StoredVehicle {
 	T* vehicle;
