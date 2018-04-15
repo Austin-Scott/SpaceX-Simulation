@@ -27,6 +27,29 @@ Options:
  -database <address> <schema> <username> <password>  #Loads data directly into the specified database
  -soft                                               #If loading into database, drop only tuples not tables
  -exclusive                                          #If loading into database, do so exclusively. Skip txt files.
+ -average_flights_per_month <average_flights>        #Sets average number of Falcon 9 flights per month
+ -average_falcon_heavy_flights <average_flights>     #Average number of Falcon Heavy flights per 1000 flights
+ -average_successful_launches <average_number>       #Average number of successful launches per 1000 launches
+ -average_successful_landings <average_number>       #Average number of successful landings per 1000 landings
+ -block_five_max_reflights <number_of_flights>       #Sets how many times a block five core can fly before retirement
+ -lesser_block_max_reflights <number_of_flights>     #How many times can a core less than block five fly
+ -weight_of_dragon <weight>                          #Sets the dry weight of the Dragon Capsule
+ -minimum_payload_weight <weight>                    #Sets the minimum weight a payload needs to be
+ -dragon_days_between_flights <days>                 #How long do Dragons wait between flights in days
+ -minimum_flight_ready_cores <number_of_cores>       #What is the least number of flight ready cores in the hanger
+ -minimum_flight_ready_dragons <number_of_dragons>   #What is the least number of flight ready dragons in the hanger
+ -maximum_secondary_payloads <max_payloads>          #Sets max number of secondary payloads that can fly
+ -average_flights_with_secondary <average_flights>   #Average number of flights with secondary payloads per 1000
+ -dragon_crew_capacity <number_of_crew_members>      #Sets max number of crew members in dragon flight
+ -bfs_max_suborbital_flights <number_of_flights>     #Sets the max number of suborbital flights per day
+ -bfs_colony_flights_per_month <number_of_flights>   #Sets the average number of BFR colony missions per month
+ -bfr_max_reflights <reflights>                      #Sets the max number of times a BFR can fly before retirement
+ -bfr_average_successful_launches <average>          #Sets average number of successful BFR launches per 1000
+ -bfr_average_successful_landings <average>          #Sets average number of successful BFR landings per 1000
+ -bfs_minimum_payload_mass <payload_mass>            #Sets the minimum payload mass of a BFS payload
+ -bfs_maximum_payload_mass <payload_mass>            #Sets the maximum payload mass of a BFS payload
+ -bfs_colony_stay_duration <days_at_colony>          #Sets the number of days a BFS will stay at a colony
+ -bfs_crew_capacity <crew_members>                   #Sets the maximum number of crew members that can fly on BFS
 )";
 	cout << options << endl;
 }
@@ -80,6 +103,259 @@ int main(int argc, char** argv) {
 		}
 		else if (strcmp(argv[i], "-exclusive") == 0) {
 			exclusive = true;
+		} 
+		else if (strcmp(argv[i], "-average_flights_per_month") == 0) {
+			if (argc - i >= 2) {
+				i++;
+				AVERAGE_FLIGHTS_PER_MONTH = atoi(argv[i]);
+			}
+			else {
+				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
+				printHelp(argv[0]);
+				return 0;
+			}
+		}
+		else if (strcmp(argv[i], "-average_falcon_heavy_flights") == 0) {
+			if (argc - i >= 2) {
+				i++;
+				AVERAGE_FALCON_HEAVY_FLIGHTS_PER_1000 = atoi(argv[i]);
+			}
+			else {
+				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
+				printHelp(argv[0]);
+				return 0;
+			}
+		}
+		else if (strcmp(argv[i], "-average_successful_launches") == 0) {
+			if (argc - i >= 2) {
+				i++;
+				AVERAGE_SUCCESSFUL_LAUNCHES_PER_1000 = atoi(argv[i]);
+			}
+			else {
+				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
+				printHelp(argv[0]);
+				return 0;
+			}
+		}
+		else if (strcmp(argv[i], "-average_successful_landings") == 0) {
+			if (argc - i >= 2) {
+				i++;
+				AVERAGE_SUCCESSFUL_LANDINGS_PER_1000 = atoi(argv[i]);
+			}
+			else {
+				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
+				printHelp(argv[0]);
+				return 0;
+			}
+		}
+		else if (strcmp(argv[i], "-block_five_max_reflights") == 0) {
+			if (argc - i >= 2) {
+				i++;
+				BLOCK_V_MAX_REFLIGHTS = atoi(argv[i]);
+			}
+			else {
+				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
+				printHelp(argv[0]);
+				return 0;
+			}
+		}
+		else if (strcmp(argv[i], "-lesser_block_max_reflights") == 0) {
+			if (argc - i >= 2) {
+				i++;
+				LESSER_BLOCK_MAX_REFLIGHTS = atoi(argv[i]);
+			}
+			else {
+				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
+				printHelp(argv[0]);
+				return 0;
+			}
+		}
+		else if (strcmp(argv[i], "-weight_of_dragon") == 0) {
+			if (argc - i >= 2) {
+				i++;
+				WEIGHT_OF_DRAGON = atoi(argv[i]);
+			}
+			else {
+				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
+				printHelp(argv[0]);
+				return 0;
+			}
+		}
+		else if (strcmp(argv[i], "-minimum_payload_weight") == 0) {
+			if (argc - i >= 2) {
+				i++;
+				MINIMUM_PAYLOAD_WEIGHT = atoi(argv[i]);
+			}
+			else {
+				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
+				printHelp(argv[0]);
+				return 0;
+			}
+		}
+		else if (strcmp(argv[i], "-dragon_days_between_flights") == 0) {
+			if (argc - i >= 2) {
+				i++;
+				DRAGON_DAYS_BETWEEN_FLIGHTS = atoi(argv[i]);
+			}
+			else {
+				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
+				printHelp(argv[0]);
+				return 0;
+			}
+		}
+		else if (strcmp(argv[i], "-minimum_flight_ready_cores") == 0) {
+			if (argc - i >= 2) {
+				i++;
+				MINIMUM_FLIGHT_READY_CORES = atoi(argv[i]);
+			}
+			else {
+				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
+				printHelp(argv[0]);
+				return 0;
+			}
+		}
+		else if (strcmp(argv[i], "-minimum_flight_ready_dragons") == 0) {
+			if (argc - i >= 2) {
+				i++;
+				MINIMUM_FLIGHT_READY_DRAGONS = atoi(argv[i]);
+			}
+			else {
+				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
+				printHelp(argv[0]);
+				return 0;
+			}
+		}
+		else if (strcmp(argv[i], "-maximum_secondary_payloads") == 0) {
+			if (argc - i >= 2) {
+				i++;
+				MAXIMUM_SECONDARY_PAYLOADS = atoi(argv[i]);
+			}
+			else {
+				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
+				printHelp(argv[0]);
+				return 0;
+			}
+		}
+		else if (strcmp(argv[i], "-average_flights_with_secondary") == 0) {
+			if (argc - i >= 2) {
+				i++;
+				AVERAGE_FLIGHTS_WITH_SECONDARY_PAYLOADS_PER_1000 = atoi(argv[i]);
+			}
+			else {
+				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
+				printHelp(argv[0]);
+				return 0;
+			}
+		}
+		else if (strcmp(argv[i], "-dragon_crew_capacity") == 0) {
+			if (argc - i >= 2) {
+				i++;
+				DRAGON_CREW_CAPACITY = atoi(argv[i]);
+			}
+			else {
+				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
+				printHelp(argv[0]);
+				return 0;
+			}
+		}
+		else if (strcmp(argv[i], "-bfs_max_suborbital_flights") == 0) {
+			if (argc - i >= 2) {
+				i++;
+				BFS_SUBORBITAL_MAX_FLIGHTS_PER_DAY = atoi(argv[i]);
+			}
+			else {
+				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
+				printHelp(argv[0]);
+				return 0;
+			}
+		}
+		else if (strcmp(argv[i], "-bfs_colony_flights_per_month") == 0) {
+			if (argc - i >= 2) {
+				i++;
+				BFS_COLONY_FLIGHTS_PER_MONTH = atoi(argv[i]);
+			}
+			else {
+				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
+				printHelp(argv[0]);
+				return 0;
+			}
+		}
+		else if (strcmp(argv[i], "-bfr_max_reflights") == 0) {
+			if (argc - i >= 2) {
+				i++;
+				BFR_MAX_REFLIGHTS = atoi(argv[i]);
+			}
+			else {
+				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
+				printHelp(argv[0]);
+				return 0;
+			}
+		}
+		else if (strcmp(argv[i], "-bfr_average_successful_launches") == 0) {
+			if (argc - i >= 2) {
+				i++;
+				BFR_SUCCESSFUL_LAUNCHES_PER_1000 = atoi(argv[i]);
+			}
+			else {
+				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
+				printHelp(argv[0]);
+				return 0;
+			}
+		}
+		else if (strcmp(argv[i], "-bfr_average_successful_landings") == 0) {
+			if (argc - i >= 2) {
+				i++;
+				BFR_SUCCESSFUL_LANDINGS_PER_1000 = atoi(argv[i]);
+			}
+			else {
+				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
+				printHelp(argv[0]);
+				return 0;
+			}
+		}
+		else if (strcmp(argv[i], "-bfs_minimum_payload_mass") == 0) {
+			if (argc - i >= 2) {
+				i++;
+				BFS_MINIMUM_PAYLOAD_MASS = atoi(argv[i]);
+			}
+			else {
+				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
+				printHelp(argv[0]);
+				return 0;
+			}
+		}
+		else if (strcmp(argv[i], "-bfs_maximum_payload_mass") == 0) {
+			if (argc - i >= 2) {
+				i++;
+				BFS_MAXIMUM_PAYLOAD_MASS = atoi(argv[i]);
+			}
+			else {
+				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
+				printHelp(argv[0]);
+				return 0;
+			}
+		}
+		else if (strcmp(argv[i], "-bfs_colony_stay_duration") == 0) {
+			if (argc - i >= 2) {
+				i++;
+				BFS_COLONY_STAY_DURATION = atoi(argv[i]);
+			}
+			else {
+				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
+				printHelp(argv[0]);
+				return 0;
+			}
+		}
+		else if (strcmp(argv[i], "-bfs_crew_capacity") == 0) {
+			if (argc - i >= 2) {
+				i++;
+				BFS_CREW_CAPACITY = atoi(argv[i]);
+			}
+			else {
+				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
+				printHelp(argv[0]);
+				return 0;
+			}
 		}
 		else {
 			cout << "Error: Unknown argument \"" << argv[i] << "\". Aborting." << endl;
@@ -87,12 +363,21 @@ int main(int argc, char** argv) {
 			return 0;
 		}
 	}
+	cout << "Adding real world Launch and Landing sites..." << endl;
+	addRealWorldLaunchSites();
+	addRealWorldLandingSites();
 	if(!skip)
 		getRealData();
+
+	cout << "Adding fictional Launch and Landing sites..." << endl;
+	addFictionalLandingSites();
+	addFictionalLaunchSites();
 	runSimulation();
+
 	if (directToDatabase)
 		updateDatabase(address, schema, username, password, soft);
 	if(!directToDatabase || (directToDatabase&&!exclusive))
 		writeResultsToFiles();
+
 	cleanAllData();
 }

@@ -3,123 +3,57 @@
 #include <vector>
 #include <sstream>
 
-#include "LinkedList.h"
-
-using namespace std;
-
 const char ValueDeliminator = '|';
 const char TupleDeliminator = '\n';
 const string NullIndicator = "\\N";
 
-string to_string(char* c, int size) {
-	string result(c, size);
-	if (size > 0 && c[0] == '\0') return NullIndicator;
-	return result;
-}
-string to_string(char* c) {
-	string result(c);
-	if (c[0] == '\0') return NullIndicator;
-	return result;
-}
-string to_string(char c) {
-	string result = "";
-	result.push_back(c);
-	if (c == '\0') return NullIndicator;
-	return result;
-}
-string V() {
-	return to_string(ValueDeliminator);
-}
-string T() {
-	return to_string(TupleDeliminator);
-}
-string sanitize(string dirty) {
-	string result = "";
-	for (int i = 0; i < dirty.size(); i++) {
-		if (dirty[i] == '\'') {
-			result.push_back('\'');
-			result.push_back('\'');
-		}
-		else {
-			result.push_back(dirty[i]);
-		}
-	}
-	return result;
-}
-void strcpy(string src, char* dest, int n, bool varlength=true) {
-	int end = varlength ? n - 1 : n;
-	for (int i = 0; i < end; i++) {
-		if (i < src.size()) {
-			dest[i] = src[i];
-		}
-		else {
-			dest[i] = '\0';
-		}
-	}
-	if(varlength)
-		dest[n - 1] = '\0';
-}
-void strmov(const char* src, char* dest, int n) {
-	for (int i = 0; i < n; i++) {
-		dest[i] = src[i];
-	}
-}
-bool stringcmp(string a, char* b, int n, bool varlength = true) {
-	for (int i = 0; i < n; i++) {
-		if (varlength&&(i >= a.size() || i == n - 1) && b[i] == '\0') return true;
-		if (!varlength&&i == n - 1 && a.size() == n&&a[i] == b[i]) return true;
-		if (i >= a.size() || a[i] != b[i]) return false;
-	}
-	return false;
-}
-string boolToString(int boolean) {
-	if (boolean == 1) return "true";
-	else if (boolean == 0) return "false";
-	else return "NULL";
-}
-string boolToListString(int boolean) {
-	if (boolean == 1) return "1";
-	else if (boolean == 0) return "0";
-	else return NullIndicator;
-}
+#include "Utility.h"
 
-struct Booster : public Relationship {
+//Booster table
+struct Booster {
 	char BoosterID[5]; //Primary Key
-	char FlightStatus[255];
+	char FlightStatus[50];
+	char CoreType[25];
 	int BlockNumber;
 
 	//Stored data not used in final database
 	int flights;
 
-	Booster()  {}
-	Booster(const Booster &other)  {
-		operator=(other);
-	}
-	void operator=(const Booster &other) {
-		strmov(other.BoosterID, BoosterID, 5);
-		strmov(other.FlightStatus, FlightStatus, 255);
-		BlockNumber = other.BlockNumber;
-		flights = other.flights;
-	}
-	virtual string insertTuple() {
+	string insertTuple() {
 		string result = "insert into " + getName() + " values ( '" + to_string(BoosterID, 5) + "', ";
 		result = FlightStatus[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(FlightStatus))+ "', ";
+		result = CoreType[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(CoreType)) + "', ";
 		result = BlockNumber == INT_MIN ? result + "NULL" : result + to_string(BlockNumber);
 		result += ")";
 		return result;
 	}
 	static string createTable() {
-		return "create table " + getName() + " ( BoosterID char(5) not null, FlightStatus varchar(255), BlockNumber int, primary key (BoosterID))";
+		return "create table " + getName() + " ( BoosterID char(5) not null, FlightStatus varchar(50), CoreType varchar(25), BlockNumber int, primary key (BoosterID))";
 	}
 	static string getName() { return "Booster";  }
+
+	friend Booster* createBooster(string BoosterID, string FlightStatus, string CoreType, int BlockNumber);
+	static string getNextAvailableBoosterID() {
+		string boosterID = "B";
+		boosterID += padWithZeros(to_string(highestBoosterID+1), 4);
+		return boosterID;
+	}
+private:
+	static int highestBoosterID;
 };
+int Booster::highestBoosterID = 0;
 LinkedList<Booster> Boosters;
-Booster* createBooster(string BoosterID, string FlightStatus, int BlockNumber) {
+Booster* createBooster(string BoosterID, string FlightStatus, string CoreType, int BlockNumber) {
 	Booster b;
 	strcpy(BoosterID, b.BoosterID, 5, false);
-	strcpy(FlightStatus, b.FlightStatus, 255);
+	strcpy(FlightStatus, b.FlightStatus, 50);
+	strcpy(CoreType, b.CoreType, 25);
 	b.BlockNumber = BlockNumber;
 	b.flights = 0;
+
+	int boosterNum = atoi(BoosterID.substr(1, 4).c_str());
+	if (boosterNum > Booster::highestBoosterID) Booster::highestBoosterID = boosterNum;
+
 	Boosters.push_back(b);
 	return Boosters.back();
 }
@@ -136,43 +70,54 @@ string listBoosters() {
 	for (auto i = Boosters.begin(); i.hasNext(); i.operator++()) {
 		auto p = &i;
 		string blockNumber = p->BlockNumber != INT_MIN ? to_string(p->BlockNumber) : NullIndicator;
-		result += to_string(p->BoosterID, 5) + V() + to_string(p->FlightStatus) + V() + blockNumber + T();
+		result += to_string(p->BoosterID, 5) + V() + to_string(p->FlightStatus) + V() + to_string(p->CoreType) + V() + blockNumber + T();
 	}
 	return result;
 }
+//End Booster table
 
-struct Dragon : public Relationship {
+//Dragon table
+struct Dragon {
 	char SerialNumber[4]; //Primary Key
-	char Description[500];
+	char Description[400];
+	int BFS; //-1=null, 0=false, 1=true
 	int FlightActive; //-1=null, 0=false, 1=true
 
-	Dragon()  {}
-	Dragon(const Dragon &other)  {
-		operator=(other);
-	}
-	void operator=(const Dragon &other) {
-		strmov(other.SerialNumber, SerialNumber, 4);
-		strmov(other.Description, Description, 500);
-		FlightActive = other.FlightActive;
-	}
-	virtual string insertTuple() {
+	string insertTuple() {
 		string result = "insert into " + getName() + " values ( '" + to_string(SerialNumber, 4) + "', ";
 		result = Description[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(Description)) + "', ";
+		result += boolToString(BFS) + ", ";
 		result += boolToString(FlightActive);
 		result += ")";
 		return result;
 	}
 	static string createTable() {
-		return "create table " + getName() + " ( SerialNumber char(4) not null, Description varchar(500), FlightActive boolean, primary key(SerialNumber) )";
+		return "create table " + getName() + " ( SerialNumber char(4) not null, Description varchar(400), BFS boolean, FlightActive boolean, primary key(SerialNumber) )";
 	}
 	static string getName() { return "Dragon";  }
+
+	friend Dragon* createDragon(string SerialNumber, string Description, int BFS, int FlightActive);
+	static string getNextAvailableSerialNumber() {
+		string capsuleID = "C";
+		capsuleID += padWithZeros(to_string(highestSerialNumber+1), 3);
+		return capsuleID;
+	}
+
+private:
+	static int highestSerialNumber;
 };
+int Dragon::highestSerialNumber = 0;
 LinkedList<Dragon> Dragons;
-Dragon* createDragon(string SerialNumber, string Description, int FlightActive) {
+Dragon* createDragon(string SerialNumber, string Description, int BFS, int FlightActive) {
 	Dragon d;
 	strcpy(SerialNumber, d.SerialNumber, 4, false);
-	strcpy(Description, d.Description, 500);
+	strcpy(Description, d.Description, 400);
 	d.FlightActive = FlightActive;
+	d.BFS = BFS;
+
+	int capsuleNum = atoi(SerialNumber.substr(1, 3).c_str());
+	if (capsuleNum > Dragon::highestSerialNumber) Dragon::highestSerialNumber = capsuleNum;
+
 	Dragons.push_back(d);
 	return Dragons.back();
 }
@@ -188,54 +133,57 @@ string listDragons() {
 	string result = "";
 	for (auto i = Dragons.begin(); i.hasNext(); i.operator++()) {
 		auto p = &i;
-		result += to_string(p->SerialNumber, 4) + V() + to_string(p->Description) + V() + boolToListString(p->FlightActive) + T();
+		result += to_string(p->SerialNumber, 4) + V() + to_string(p->Description) + V() + boolToListString(p->BFS) + V() + boolToListString(p->FlightActive) + T();
 	}
 	return result;
 }
+//End Dragon table
 
-struct LaunchSite : public Relationship {
-	char Name[100]; //Primary Key
+//LaunchSite table
+struct LaunchSite {
+	char SiteID[25]; //Primary Key
+	char Name[255];
 	char Location[255];
+	int Active; //-1=null, 0=false, 1=true
+	int BFR; //-1=null, 0=false, 1=true
 
-	LaunchSite()  {}
-	LaunchSite(const LaunchSite &other)  {
-		operator=(other);
-	}
-	void operator=(const LaunchSite &other) {
-		strmov(other.Name, Name, 100);
-		strmov(other.Location, Location, 255);
-	}
-	virtual string insertTuple() {
-		string result = "insert into " + getName() + " values ( '" + to_string(Name) + "', ";
-		result = Location[0] == '\0' ? result + "NULL" : result + "'" + sanitize(to_string(Location)) + "'";
+	string insertTuple() {
+		string result = "insert into " + getName() + " values ( '" + to_string(SiteID) + "', ";
+		result = Name[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(Name)) + "', ";
+		result = Location[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(Location)) + "', ";
+		result += boolToString(Active) + ", ";
+		result += boolToString(BFR);
 		result += ")";
 		return result;
 	}
 	static string createTable() {
-		return "create table " + getName() + " (Name varchar(100) not null,Location varchar(255),primary key(Name))";
+		return "create table " + getName() + " (SiteID varchar(25) not null, Name varchar(255), Location varchar(255), Active boolean, BFR boolean, primary key(SiteID))";
 	}
 	static string getName() { return "LaunchSite";  }
 };
 LinkedList<LaunchSite> LaunchSites;
-LaunchSite* createLaunchSite(string Name, string Location) {
+LaunchSite* createLaunchSite(string SiteID, string Name, string Location, int Active, int BFR) {
 	LaunchSite l;
-	strcpy(Name, l.Name, 100);
+	strcpy(SiteID, l.SiteID, 25);
+	strcpy(Name, l.Name, 255);
 	strcpy(Location, l.Location, 255);
+	l.Active = Active;
+	l.BFR = BFR;
 	LaunchSites.push_back(l);
 	return LaunchSites.back();
 }
-LaunchSite* findLaunchSite(string Name) {
+LaunchSite* findLaunchSite(string SiteID) {
 	for (auto i = LaunchSites.begin(); i.hasNext(); i.operator++()) {
 		LaunchSite* p = &i;
-		if (stringcmp(Name, p->Name, 100))
+		if (stringcmp(SiteID, p->SiteID, 25))
 			return p;
 	}
 	return nullptr;
 }
-LaunchSite* findOrCreateLaunchSite(string name, string location) {
-	LaunchSite* result = findLaunchSite(name);
+LaunchSite* findOrCreateLaunchSite(string SiteID, string Name, string Location, int Active, int BFR) {
+	LaunchSite* result = findLaunchSite(SiteID);
 	if (result == nullptr) {
-		return createLaunchSite(name, location);
+		return createLaunchSite(SiteID,Name,Location,Active,BFR);
 	}
 	else {
 		return result;
@@ -245,198 +193,111 @@ string listLaunchSites() {
 	string result = "";
 	for (auto i = LaunchSites.begin(); i.hasNext(); i.operator++()) {
 		auto p = &i;
-		result += to_string(p->Name) + V() + to_string(p->Location) + T();
+		result += to_string(p->SiteID) + V() + to_string(p->Name) + V() + to_string(p->Location) + V() + boolToListString(p->Active)+ V() + boolToListString(p->BFR) + T();
 	}
 	return result;
 }
+//End LaunchSite table
 
-int getDaysInMonth(int month, int year) {
-	if (month != 2) {
-		if (month < 8) {
-			if (month % 2 == 0) {
-				return 30;
-			}
-			else {
-				return 31;
-			}
-		}
-		else {
-			if (month % 2 == 0) {
-				return 31;
-			}
-			else {
-				return 30;
-			}
-		}
+//LandingSite table
+struct LandingSite {
+	char SiteID[25]; //Primary Key
+	char Name[255];
+	int BFR; //-1=null, 0=false, 1=true
+
+	string insertTuple() {
+		string result = "insert into " + getName() + " values ( '" + to_string(SiteID) + "', ";
+		result = Name[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(Name)) + "', ";
+		result += boolToString(BFR);
+		result += ")";
+		return result;
+	}
+	static string createTable() {
+		return "create table " + getName() + " (SiteID varchar(25) not null,Name varchar(255), BFR boolean, primary key(SiteID))";
+	}
+	static string getName() { return "LandingSite"; }
+};
+LinkedList<LandingSite> LandingSites;
+LandingSite* createLandingSite(string SiteID, string Name, int BFR) {
+	LandingSite l;
+	strcpy(SiteID, l.SiteID, 25);
+	strcpy(Name, l.Name, 255);
+	l.BFR = BFR;
+	LandingSites.push_back(l);
+	return LandingSites.back();
+}
+LandingSite* findLandingSite(string SiteID) {
+	for (auto i = LandingSites.begin(); i.hasNext(); i.operator++()) {
+		LandingSite* p = &i;
+		if (stringcmp(SiteID, p->SiteID, 25))
+			return p;
+	}
+	return nullptr;
+}
+LandingSite* findOrCreateLandingSite(string SiteID, string Name, int BFR) {
+	LandingSite* result = findLandingSite(SiteID);
+	if (result == nullptr) {
+		return createLandingSite(SiteID, Name, BFR);
 	}
 	else {
-		if (year % 4 == 0 && (year % 100 != 0 || (year % 100 == 0 && year % 400 == 0))) { //If it is a leap year
-			return 29;
-		}
-		else {
-			return 28;
-		}
-	}
-}
-struct Date { //Meta-Structure for holding dates
-	int day; 
-	int month;
-	int year; //Such as: 2018
-	Date() {}
-	Date(string date) { //Format YYYY-MM-DD
-		if (date.size() == 10) {
-			year = atoi(date.substr(0, 4).c_str());
-			month = atoi(date.substr(5, 2).c_str());
-			day = atoi(date.substr(8, 2).c_str());
-		}
-		else {
-			year = 0;
-			month = 0;
-			day = 0;
-		}
-	}
-	Date(int year, int month, int day) {
-		this->year = year;
-		this->month = month;
-		this->day = day;
-	}
-	Date operator+(int days) { //Advance time by "days" days
-		Date result = *this;
-		for (int i = 0; i < days; i++) {
-			result.day++;
-			if (result.day > getDaysInMonth(result.month, result.year)) {
-				result.day = 1;
-				result.month++;
-				if (result.month > 12) {
-					result.month = 1;
-					result.year++;
-				}
-			}
-		}
 		return result;
 	}
-	void operator+=(int days) {
-		Date result = operator+(days);
-		day = result.day;
-		month = result.month;
-		year = result.year;
-	}
-	bool operator==(Date other) {
-		return year == other.year&&month == other.month&&day == other.day;
-	}
-	bool operator!=(Date other) {
-		return !operator==(other);
-	}
-	bool operator>(Date other) {
-		if (year > other.year) {
-			return true;
-		}
-		else if (year < other.year) {
-			return false;
-		}
-		else {
-			if (month > other.month) {
-				return true;
-			}
-			else if (month < other.month) {
-				return false;
-			}
-			else {
-				if (day > other.day) {
-					return true;
-				}
-				else if (day < other.day) {
-					return false;
-				}
-				else {
-					return false;
-				}
-			}
-		}
-	}
-	int operator-(Date other) { //Get number of days between this date and other date
-		int result = 0;
-		if (operator>(other)) {
-			while (other != *this) {
-				result++;
-				other += 1;
-			}
-		}
-		else {
-			Date temp = *this;
-			while (temp != other) {
-				result++;
-				temp += 1;
-			}
-		}
-		return result;
-	}
-};
-string padWithZeros(string str, int width) {
-	if (str.size() < width) {
-		int zeros = width - str.size();
-		for (int i = 0; i < zeros; i++) {
-			str = '0' + str;
-		}
-	}
-	return str;
 }
-string to_string(Date date) {
-	string result;
-	string sYear = to_string(date.year);
-	sYear = padWithZeros(sYear, 4);
-	string sMonth = to_string(date.month);
-	sMonth = padWithZeros(sMonth, 2);
-	string sDay = to_string(date.day);
-	sDay = padWithZeros(sDay, 2);
-	result = sYear + "-" + sMonth + "-" + sDay;
+string listLandingSites() {
+	string result = "";
+	for (auto i = LandingSites.begin(); i.hasNext(); i.operator++()) {
+		auto p = &i;
+		result += to_string(p->SiteID) + V() + to_string(p->Name) + V() + boolToListString(p->BFR) + T();
+	}
 	return result;
 }
+//End LandingSite table
 
-struct Mission : public Relationship {
+//Mission table
+struct Mission {
 	int MissionNumber; //Primary Key
-	char Title[255];
-	char Description[500];
-	Date date;
 	LaunchSite* LaunchSiteName;
+	char Title[255];
+	char Description[400];
+	Date date;
 	int LaunchSuccess; //-1=null, 0=false, 1=true
 
-	Mission()  {}
-	Mission(const Mission &other)  {
-		operator=(other);
-	}
-	void operator=(const Mission &other) {
-		MissionNumber = other.MissionNumber;
-		strmov(other.Title, Title, 255);
-		strmov(other.Description, Description, 500);
-		date = other.date;
-		LaunchSiteName = other.LaunchSiteName;
-		LaunchSuccess = other.LaunchSuccess;
-	}
-	virtual string insertTuple() {
+	string insertTuple() {
 		string result = "insert into " + getName() + " values ( " + to_string(MissionNumber) + ", ";
+		result = LaunchSiteName == nullptr ? result + "NULL, " : result + "'" + to_string(LaunchSiteName->SiteID) + "', ";
 		result = Title[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(Title)) + "', ";
 		result = Description[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(Description)) + "', ";
 		result += "'" + to_string(date) + "', ";
-		result = LaunchSiteName == nullptr ? result + "NULL, " : result + "'" + to_string(LaunchSiteName->Name) + "', ";
 		result += boolToString(LaunchSuccess);
 		result += ")";
 		return result;
 	}
 	static string createTable() {
-		return "create table " + getName() + " (MissionNumber int not null,Title varchar(255),Description varchar(500),Date date,LaunchSiteName varchar(100) not null, LaunchSuccess boolean, primary key(MissionNumber),foreign key(LaunchSiteName) references LaunchSite(Name))";
+		return "create table " + getName() + " (MissionNumber int not null, LaunchSite varchar(25) not null, Title varchar(255), Description varchar(400), Date date, LaunchSuccess boolean, primary key(MissionNumber),foreign key(LaunchSite) references LaunchSite(SiteID))";
 	}
 	static string getName() { return "Mission";  }
+
+	friend Mission* createMission(int MissionNumber, LaunchSite* LaunchSiteName, string Title, string Description, Date date, int LaunchSuccess);
+	static int getNextAvailableMissionNumber() {
+		return highestMissionNumber + 1;
+	}
+
+private:
+	static int highestMissionNumber;
 };
+int Mission::highestMissionNumber = 0;
 LinkedList<Mission> Missions;
-Mission* createMission(int MissionNumber, string Title, string Description, Date date, LaunchSite* LaunchSiteName, int LaunchSuccess) {
+Mission* createMission(int MissionNumber, LaunchSite* LaunchSiteName, string Title, string Description, Date date, int LaunchSuccess) {
 	Mission m;
 	m.MissionNumber = MissionNumber;
-	strcpy(Title, m.Title, 255);
-	strcpy(Description, m.Description, 500);
-	m.date = date;
 	m.LaunchSiteName = LaunchSiteName;
+	strcpy(Title, m.Title, 255);
+	strcpy(Description, m.Description, 400);
+	m.date = date;
 	m.LaunchSuccess = LaunchSuccess;
+
+	if (MissionNumber > Mission::highestMissionNumber) Mission::highestMissionNumber = MissionNumber;
+
 	Missions.push_back(m);
 	return Missions.back();
 }
@@ -451,49 +312,40 @@ string listMissions() {
 	string result = "";
 	for (auto i = Missions.begin(); i.hasNext(); i.operator++()) {
 		auto p = &i;
-		result += to_string(p->MissionNumber) + V() + to_string(p->Title) + V() + to_string(p->Description) + V() + to_string(p->date) + V() + to_string(p->LaunchSiteName->Name) + V() + boolToListString(p->LaunchSuccess) + T();
+		result += to_string(p->MissionNumber) + V() + to_string(p->LaunchSiteName->Name) + V() + to_string(p->Title) + V() + to_string(p->Description) + V() + to_string(p->date) + V() + boolToListString(p->LaunchSuccess) + T();
 	}
 	return result;
 }
+//End Mission Table
 
-struct flownBy : public Relationship {
+//flownBy table
+struct flownBy {
 	Booster* BoosterID; //Primary Key
 	Mission* MissionNumber; //Primary Key
-	char LandingSite[100];
-	char LandingOutcome[500];
+	LandingSite* LandSite; //Foreign Key
+	char LandingOutcome[50];
 	int LandingSuccess; //-1=null, 0=false, 1=true
 
-	flownBy()  {}
-	flownBy(const flownBy &other) {
-		operator=(other);
-	}
-	void operator=(const flownBy &other) {
-		BoosterID = other.BoosterID;
-		MissionNumber = other.MissionNumber;
-		strmov(other.LandingSite, LandingSite, 100);
-		strmov(other.LandingOutcome, LandingOutcome, 500);
-		LandingSuccess = other.LandingSuccess;
-	}
-	virtual string insertTuple() {
+	string insertTuple() {
 		string result = "insert into " + getName() + " values ( '" + to_string(BoosterID->BoosterID, 5) + "', " + to_string(MissionNumber->MissionNumber) + ", ";
-		result = LandingSite[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(LandingSite)) + "', ";
+		result = LandSite == nullptr ? result + "NULL, " : result + "'" + sanitize(to_string(LandSite->SiteID)) + "', ";
 		result = LandingOutcome[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(LandingOutcome)) + "', ";
 		result += boolToString(LandingSuccess);
 		result += ")";
 		return result;
 	}
 	static string createTable() {
-		return "create table " + getName() + " (BoosterID char(5) not null,MissionNumber int not null,LandingSite varchar(100),LandingOutcome varchar(500), LandingSuccess boolean, primary key(BoosterID, MissionNumber),foreign key(BoosterID) references Booster(BoosterID),foreign key(MissionNumber) references Mission(MissionNumber))";
+		return "create table " + getName() + " (BoosterID char(5) not null,MissionNumber int not null,LandingSite varchar(25),LandingOutcome varchar(50), LandingSuccess boolean, primary key(BoosterID, MissionNumber),foreign key(BoosterID) references Booster(BoosterID),foreign key(MissionNumber) references Mission(MissionNumber), foreign key(LandingSite) references LandingSite(SiteID))";
 	}
 	static string getName() { return "flownBy";  }
 };
 LinkedList<flownBy> flownBys;
-flownBy* createFlownBy(Booster* BoosterID, Mission* MissionNumber, string LandingSite, string LandingOutcome, int LandingSuccess) {
+flownBy* createFlownBy(Booster* BoosterID, Mission* MissionNumber, LandingSite* LandingSite, string LandingOutcome, int LandingSuccess) {
 	flownBy f;
 	f.BoosterID = BoosterID;
 	f.MissionNumber = MissionNumber;
-	strcpy(LandingSite, f.LandingSite, 100);
-	strcpy(LandingOutcome, f.LandingOutcome, 500);
+	f.LandSite = LandingSite;
+	strcpy(LandingOutcome, f.LandingOutcome, 50);
 	f.LandingSuccess = LandingSuccess;
 	flownBys.push_back(f);
 	return flownBys.back();
@@ -510,62 +362,54 @@ string listflownBys() {
 	string result = "";
 	for (auto i = flownBys.begin(); i.hasNext(); i.operator++()) {
 		auto p = &i;
-		result += to_string(p->BoosterID->BoosterID, 5) + V() + to_string(p->MissionNumber->MissionNumber) + V() + to_string(p->LandingSite) + V() + to_string(p->LandingOutcome) + V() + boolToListString(p->LandingSuccess) + T();
+		string landSite = p->LandSite == nullptr ? NullIndicator : to_string(p->LandSite->SiteID);
+		result += to_string(p->BoosterID->BoosterID, 5) + V() + to_string(p->MissionNumber->MissionNumber) + V() + landSite + V() + to_string(p->LandingOutcome) + V() + boolToListString(p->LandingSuccess) + T();
 	}
 	return result;
 }
+//End flownBy table
 
-struct Payload : public Relationship {
+//Payload table
+struct Payload {
 	char Title[100]; //Primary Key
-	char Orbit[100];
+	Mission* MissionNumber; //Primary Key
+	LandingSite* DestinationSite; //Foreign Key
+	Dragon* DragonSerial; //Foreign Key
+	char Orbit[50];
 	int PayloadMass;
-	char Supplier[255];
-	char MissionOutcome[500];
-	Dragon* DragonSerial;
-	Mission* MissionNumber; //Must not be null
+	char Supplier[50];
+	char MissionOutcome[50];
 	int CrewMembers;
 
-	Payload()  {}
-	Payload(const Payload &other) {
-		operator=(other);
-	}
-	void operator=(const Payload &other) {
-		strmov(other.Title, Title, 100);
-		strmov(other.Orbit, Orbit, 100);
-		PayloadMass = other.PayloadMass;
-		strmov(other.Supplier, Supplier, 255);
-		strmov(other.MissionOutcome, MissionOutcome, 500);
-		DragonSerial = other.DragonSerial;
-		MissionNumber = other.MissionNumber;
-		CrewMembers = other.CrewMembers;
-	}
-	virtual string insertTuple() {
+	string insertTuple() {
 		string result = "insert into " + getName() + " values ( '" + sanitize(to_string(Title)) + "', ";
+		result += to_string(MissionNumber->MissionNumber) + ", ";
+		result = DestinationSite == nullptr ? result + "NULL, " : result + "'" + sanitize(to_string(DestinationSite->SiteID)) + "', ";
+		result = DragonSerial == nullptr ? result + "NULL, " : result + "'" + to_string(DragonSerial->SerialNumber, 4) + "', ";
 		result = Orbit[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(Orbit)) + "', ";
 		result = PayloadMass == INT_MIN ? result + "NULL, " : result + to_string(PayloadMass) + ", ";
 		result = Supplier[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(Supplier)) + "', ";
 		result = MissionOutcome[0] == '\0' ? result + "NULL, " : result + "'" + sanitize(to_string(MissionOutcome)) + "', ";
-		result = DragonSerial == nullptr ? result + "NULL, " : result + "'" + to_string(DragonSerial->SerialNumber, 4) + "', ";
-		result += to_string(MissionNumber->MissionNumber) + ", ";
 		result += to_string(CrewMembers);
 		result += ")";
 		return result;
 	}
 	static string createTable() {
-		return "create table " + getName() + " (Title varchar(100) not null,Orbit varchar(100),PayloadMass int,Supplier varchar(255),MissionOutcome varchar(500),DragonSerial char(4),MissionNumber int not null, CrewMembers int, primary key(Title),foreign key(DragonSerial) references Dragon(SerialNumber),foreign key(MissionNumber) references Mission(MissionNumber))";
+		return "create table " + getName() + " (Title varchar(100) not null, MissionNumber int not null, DestinationSite varchar(25), DragonSerial char(4), Orbit varchar(50),PayloadMass int,Supplier varchar(50),MissionOutcome varchar(50), CrewMembers int, primary key(Title, MissionNumber), foreign key(DestinationSite) references LandingSite(SiteID), foreign key(DragonSerial) references Dragon(SerialNumber),foreign key(MissionNumber) references Mission(MissionNumber))";
 	}
 	static string getName() { return "Payload";  }
 };
 LinkedList<Payload> Payloads;
-Payload* createPayload(string Title, string Orbit, int PayloadMass, string Supplier, string MissionOutcome, Dragon* DragonSerial, Mission* MissionNumber, int CrewMembers) {
+Payload* createPayload(string Title, Mission* MissionNumber, LandingSite* DestinationSite, Dragon* DragonSerial, string Orbit, int PayloadMass, string Supplier, string MissionOutcome, int CrewMembers) {
 	Payload p;
 	strcpy(Title, p.Title, 100);
-	strcpy(Orbit, p.Orbit, 100);
-	p.PayloadMass = PayloadMass;
-	strcpy(Supplier, p.Supplier, 255);
-	strcpy(MissionOutcome, p.MissionOutcome, 500);
-	p.DragonSerial = DragonSerial;
 	p.MissionNumber = MissionNumber;
+	p.DestinationSite = DestinationSite;
+	p.DragonSerial = DragonSerial;
+	strcpy(Orbit, p.Orbit, 50);
+	p.PayloadMass = PayloadMass;
+	strcpy(Supplier, p.Supplier, 50);
+	strcpy(MissionOutcome, p.MissionOutcome, 50);
 	p.CrewMembers = CrewMembers;
 	Payloads.push_back(p);
 	return Payloads.back();
@@ -584,11 +428,15 @@ string listPayloads() {
 		auto p = &i;
 		string payloadMass = p->PayloadMass != INT_MIN ? to_string(p->PayloadMass) : NullIndicator;
 		string dragonSerial = p->DragonSerial != nullptr ? to_string(p->DragonSerial->SerialNumber, 4) : NullIndicator;
-		result += to_string(p->Title) + V() + to_string(p->Orbit) + V() + payloadMass + V() + to_string(p->Supplier) + V() + to_string(p->MissionOutcome) + V()
-			+ dragonSerial + V() + to_string(p->MissionNumber->MissionNumber) + V() + to_string(p->CrewMembers) + T();
+		string destinationSite = p->DestinationSite == nullptr ? NullIndicator : to_string(p->DestinationSite->SiteID);
+		result += to_string(p->Title) + V() + to_string(p->MissionNumber->MissionNumber) + V() + destinationSite + V() + dragonSerial + V() + to_string(p->Orbit) + V() + payloadMass + V() + to_string(p->Supplier) + V() + to_string(p->MissionOutcome) + V() + to_string(p->CrewMembers) + T();
 	}
 	return result;
 }
+//End Payload table
+
+//Functions involving all tables
+
 void cleanAllData() {
 	Boosters.deleteAll();
 	flownBys.deleteAll();
@@ -596,6 +444,7 @@ void cleanAllData() {
 	Payloads.deleteAll();
 	Dragons.deleteAll();
 	LaunchSites.deleteAll();
+	LandingSites.deleteAll();
 }
 
 void writeResultsToFiles() {
@@ -637,15 +486,13 @@ void writeResultsToFiles() {
 	}
 	LaunchSiteFile.close();
 
+	ofstream LandingSiteFile("output/LandingSite.txt", ios::out);
+	if (LandingSiteFile) {
+		LandingSiteFile << listLandingSites();
+	}
+	LandingSiteFile.close();
+
 	cout << "Done." << endl;
-}
-
-string dropTable(string name) {
-	return "DROP TABLE IF EXISTS " + name;
-}
-
-string dropTuples(string name) {
-	return "DELETE FROM " + name;
 }
 
 void updateDatabase(string address, string schema, string username, string password, bool soft) {
@@ -663,6 +510,7 @@ void updateDatabase(string address, string schema, string username, string passw
 			executeSQL(dropTuples(Dragon::getName()));
 			executeSQL(dropTuples(Mission::getName()));
 			executeSQL(dropTuples(LaunchSite::getName()));
+			executeSQL(dropTuples(LandingSite::getName()));
 		}
 		else {
 
@@ -674,11 +522,13 @@ void updateDatabase(string address, string schema, string username, string passw
 			executeSQL(dropTable(Dragon::getName()));
 			executeSQL(dropTable(Mission::getName()));
 			executeSQL(dropTable(LaunchSite::getName()));
+			executeSQL(dropTable(LandingSite::getName()));
 
 			cout << "Creating tables..." << endl;
 			//Re-create the dropped tables
 			executeSQL(Booster::createTable());
 			executeSQL(Dragon::createTable());
+			executeSQL(LandingSite::createTable());
 			executeSQL(LaunchSite::createTable());
 			executeSQL(Mission::createTable());
 			executeSQL(flownBy::createTable());
@@ -697,6 +547,10 @@ void updateDatabase(string address, string schema, string username, string passw
 		}
 		cout << "Inserting tuples into " << LaunchSite::getName() << "..." << endl;
 		for (auto iter = LaunchSites.begin(); iter.hasNext(); iter.operator++()) {
+			executeSQL((&iter)->insertTuple());
+		}
+		cout << "Inserting tuples into " << LandingSite::getName() << "..." << endl;
+		for (auto iter = LandingSites.begin(); iter.hasNext(); iter.operator++()) {
 			executeSQL((&iter)->insertTuple());
 		}
 		cout << "Inserting tuples into " << Mission::getName() << "..." << endl;
