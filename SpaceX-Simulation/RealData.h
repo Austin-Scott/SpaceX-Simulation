@@ -9,13 +9,22 @@ using namespace rapidjson;
 
 const string startDate = "2010-06-04";
 const string endDate = getCurrentDate();
-int highestMissionNumber = 0;
-int highestBoosterNumber = 0;
-int highestCapsuleNumber = 0;
 
 string downloadMissionData() {
 	string command = "curl -k -s ";
 	command += "\"https://api.spacexdata.com/v2/launches?start=" + startDate + "&final=" + endDate + "\"";
+	return executeSystemCommand(command);
+}
+
+string downloadCoreData() {
+	string command = "curl -k -s ";
+	command += "\"https://api.spacexdata.com/v2/parts/cores\"";
+	return executeSystemCommand(command);
+}
+
+string downloadCapsuleData() {
+	string command = "curl -k -s ";
+	command += "\"https://api.spacexdata.com/v2/parts/caps\"";
 	return executeSystemCommand(command);
 }
 
@@ -57,7 +66,6 @@ int getBool(const Value &parent, string name) {
 
 void parseMissionData(const Value &mission) {
 	int flight_number = getInt(mission, "flight_number");
-	if (flight_number > highestMissionNumber) highestMissionNumber = flight_number;
 	Date launch_date(getString(mission, "launch_date_utc").substr(0,10));
 	string Description = getString(mission, "details");
 	int launch_success = getBool(mission, "launch_success");
@@ -140,57 +148,6 @@ void parseMissionData(const Value &mission) {
 	}
 }
 
-void prepareBoosterForSimulation(Booster* booster) {
-	Document doc;
-	string boosterID(booster->BoosterID, 5);
-
-	cout << "Downloading detailed information on booster " << boosterID << "..." << endl;
-
-	int boosterNum = atoi(boosterID.substr(1, 4).c_str());
-	if (boosterNum > highestBoosterNumber) highestBoosterNumber = boosterNum;
-
-	if (booster->BlockNumber != 0) {
-
-		string command = "curl -k -s ";
-		command += "\"https://api.spacexdata.com/v2/parts/cores/" + boosterID + "\"";
-		string result = executeSystemCommand(command);
-		doc.Parse(result.c_str());
-		string status = getString(doc, "status");
-		if (status == "active") {
-			//Currently does not distinguish between Falcon Heavy and Falcon 9 cores. However, this does not matter because currently there are no flight active Falcon Heavy cores.
-			flightActiveCores.addVehicle(booster);
-		}
-		else {
-			strcpy(status, booster->FlightStatus, 50);
-		}
-	}
-}
-
-void prepareCapsuleForSimulation(Dragon* capsule) {
-	Document doc;
-	string capsuleID(capsule->SerialNumber, 4);
-
-	cout << "Downloading detailed information on Dragon " << capsuleID << "..." << endl;
-
-	int capsuleNum = atoi(capsuleID.substr(1, 3).c_str());
-	if (capsuleNum > highestCapsuleNumber) highestCapsuleNumber = capsuleNum;
-
-	string command = "curl -k -s ";
-	command += "\"https://api.spacexdata.com/v2/parts/caps/" + capsuleID + "\"";
-	string result = executeSystemCommand(command);
-	doc.Parse(result.c_str());
-	string description = getString(doc, "details");
-	if (description.size() > 0) {
-		strcpy(description, capsule->Description, 400);
-	}
-	if (getString(doc, "status") == "active") {
-		flightActiveDragons.addVehicle(capsule);
-	}
-	else {
-		capsule->FlightActive = 0;
-	}
-}
-
 void addFalconOneLaunches() {
 	LaunchSite* site = findLaunchSite("kwajalein_atoll");
 	//Flight One
@@ -254,12 +211,57 @@ void getRealData() {
 	else {
 		cout << "Failed to download mission manifest." << endl;
 	}
-	for (auto i = Boosters.begin(); i.hasNext(); i.operator++()) {
-		Booster* b = &i;
-		prepareBoosterForSimulation(b);
+
+	cout << "Attempting to download detailed booster information..." << endl;
+	Document doc2;
+	string rawJson2 = downloadCoreData();
+	doc2.Parse(rawJson2.c_str());
+	if (doc2.IsArray()) {
+		Value root = doc2.GetArray();
+		for (int i = 0; i < root.Size(); i++) {
+			string boosterID = getString(root[i], "core_serial");
+			Booster* booster = findBooster(boosterID);
+			if (booster != nullptr && booster->BlockNumber!=0) {
+				cout << "Parsing detailed information about Booster " << boosterID << "..." << endl;
+				string status = getString(root[i], "status");
+				if (status == "active") {
+					//Make this booster available to be used in the simulation
+					flightActiveCores.addVehicle(booster);
+				}
+				else {
+					strcpy(status, booster->FlightStatus, 50);
+				}
+			}
+		}
 	}
-	for (auto i = Dragons.begin(); i.hasNext(); i.operator++()) {
-		Dragon* d = &i;
-		prepareCapsuleForSimulation(d);
+	else {
+		cout << "Failed to download detailed booster information." << endl;
+	}
+
+	cout << "Attempting to download detailed capsule information..." << endl;
+	Document doc3;
+	string rawJson3 = downloadCapsuleData();
+	doc3.Parse(rawJson3.c_str());
+	if (doc3.IsArray()) {
+		Value root = doc3.GetArray();
+		for (int i = 0; i < root.Size(); i++) {
+			string capsuleID = getString(root[i], "capsule_serial");
+			Dragon* capsule = findDragon(capsuleID);
+			if (capsule != nullptr) {
+				cout << "Parsing detailed information about Dragon " << capsuleID << "..." << endl;
+				if (description.size() > 0) {
+					strcpy(description, capsule->Description, 400);
+				}
+					//Make this Dragon available in the simulation
+					flightActiveDragons.addVehicle(capsule);
+				}
+				else {
+					capsule->FlightActive = 0;
+				}
+			}
+		}
+	}
+	else {
+		cout << "Failed to download detailed capsule information." << endl;
 	}
 }

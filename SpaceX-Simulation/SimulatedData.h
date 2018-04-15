@@ -87,16 +87,12 @@ bool chanceOutOf30(int n, default_random_engine &e) {
 void updateHangers() {
 	flightActiveDragons.addVehicles(dragonsInSpace.getVehiclesOlderThan(today, DRAGON_DAYS_BETWEEN_FLIGHTS), today);
 	while (flightActiveCores.getNumOfVehicles() < MINIMUM_FLIGHT_READY_CORES) {
-		string boosterID = "B";
-		boosterID += padWithZeros(to_string(highestBoosterNumber), 4);
-		highestBoosterNumber++;
-		flightActiveCores.addVehicle(createBooster(boosterID, "Active", "falcon9", 5));
+		
+		flightActiveCores.addVehicle(createBooster(Booster::getNextAvailableBoosterID(), "Active", "falcon9", 5));
 	}
 	while (flightActiveDragons.getNumOfVehicles() < MINIMUM_FLIGHT_READY_DRAGONS) {
-		string capsuleID = "C";
-		capsuleID += padWithZeros(to_string(highestCapsuleNumber), 3);
-		highestCapsuleNumber++;
-		flightActiveDragons.addVehicle(createDragon(capsuleID, "Freshly made Dragon Capsule",0, 1));
+		
+		flightActiveDragons.addVehicle(createDragon(Dragon::getNextAvailableSerialNumber(), "Freshly made Dragon Capsule",0, 1));
 	}
 }
 
@@ -160,8 +156,7 @@ bool generateMission(default_random_engine &e) {
 	//Step 9: Get/Create launchsite reference
 	LaunchSite* missionLaunchSite = findLaunchSite(launchSites[launchSite].name);
 	//Step 10: Create new mission reference
-	Mission* mission = createMission(highestMissionNumber,missionLaunchSite, payloadName, "", today,  -1);
-	highestMissionNumber++;
+	Mission* mission = createMission(Mission::getNextAvailableMissionNumber(),missionLaunchSite, payloadName, "", today,  -1);
 	//Step 11: Create primary payload reference
 	vector<Payload*> payloads;
 	payloads.push_back(createPayload(payloadName,mission,nullptr,dragonCapsule, destinations[destination].name, primaryMass, payloadNames[payloadChoice].supplier, "", crewMembers));
@@ -323,16 +318,12 @@ bool generateMission(default_random_engine &e) {
 void runSimulation() {
 	cout << "Starting simulation mode..." << endl;
 
-	highestMissionNumber++;
-	highestBoosterNumber++;
-	highestCapsuleNumber++;
-
 	default_random_engine e;
 
 	while (currentNumberOfFlights < FLIGHTS_TO_PERFORM) {
 		updateHangers();
 		if (chanceOutOf30(AVERAGE_FLIGHTS_PER_MONTH, e)) { //Let's go to space today!! :)
-			cout << "Generating simulated mission #" << highestMissionNumber << "..." << endl;
+			cout << "Generating simulated mission #" << Mission::getNextAvailableMissionNumber() << "..." << endl;
 			generateMission(e);
 			currentNumberOfFlights++;
 		}

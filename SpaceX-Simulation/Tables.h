@@ -31,7 +31,17 @@ struct Booster {
 		return "create table " + getName() + " ( BoosterID char(5) not null, FlightStatus varchar(50), CoreType varchar(25), BlockNumber int, primary key (BoosterID))";
 	}
 	static string getName() { return "Booster";  }
+
+	friend Booster* createBooster(string BoosterID, string FlightStatus, string CoreType, int BlockNumber);
+	static string getNextAvailableBoosterID() {
+		string boosterID = "B";
+		boosterID += padWithZeros(to_string(highestBoosterID+1), 4);
+		return boosterID;
+	}
+private:
+	static int highestBoosterID;
 };
+int Booster::highestBoosterID = 0;
 LinkedList<Booster> Boosters;
 Booster* createBooster(string BoosterID, string FlightStatus, string CoreType, int BlockNumber) {
 	Booster b;
@@ -40,6 +50,10 @@ Booster* createBooster(string BoosterID, string FlightStatus, string CoreType, i
 	strcpy(CoreType, b.CoreType, 25);
 	b.BlockNumber = BlockNumber;
 	b.flights = 0;
+
+	int boosterNum = atoi(BoosterID.substr(1, 4).c_str());
+	if (boosterNum > Booster::highestBoosterID) Booster::highestBoosterID = boosterNum;
+
 	Boosters.push_back(b);
 	return Boosters.back();
 }
@@ -81,7 +95,18 @@ struct Dragon {
 		return "create table " + getName() + " ( SerialNumber char(4) not null, Description varchar(400), BFS boolean, FlightActive boolean, primary key(SerialNumber) )";
 	}
 	static string getName() { return "Dragon";  }
+
+	friend Dragon* createDragon(string SerialNumber, string Description, int BFS, int FlightActive);
+	static string getNextAvailableSerialNumber() {
+		string capsuleID = "C";
+		capsuleID += padWithZeros(to_string(highestSerialNumber+1), 3);
+		return capsuleID;
+	}
+
+private:
+	static int highestSerialNumber;
 };
+int Dragon::highestSerialNumber = 0;
 LinkedList<Dragon> Dragons;
 Dragon* createDragon(string SerialNumber, string Description, int BFS, int FlightActive) {
 	Dragon d;
@@ -89,6 +114,10 @@ Dragon* createDragon(string SerialNumber, string Description, int BFS, int Fligh
 	strcpy(Description, d.Description, 400);
 	d.FlightActive = FlightActive;
 	d.BFS = BFS;
+
+	int capsuleNum = atoi(SerialNumber.substr(1, 3).c_str());
+	if (capsuleNum > Dragon::highestSerialNumber) Dragon::highestSerialNumber = capsuleNum;
+
 	Dragons.push_back(d);
 	return Dragons.back();
 }
@@ -247,7 +276,16 @@ struct Mission {
 		return "create table " + getName() + " (MissionNumber int not null, LaunchSite varchar(25) not null, Title varchar(255), Description varchar(400), Date date, LaunchSuccess boolean, primary key(MissionNumber),foreign key(LaunchSite) references LaunchSite(SiteID))";
 	}
 	static string getName() { return "Mission";  }
+
+	friend Mission* createMission(int MissionNumber, LaunchSite* LaunchSiteName, string Title, string Description, Date date, int LaunchSuccess);
+	static int getNextAvailableMissionNumber() {
+		return highestMissionNumber + 1;
+	}
+
+private:
+	static int highestMissionNumber;
 };
+int Mission::highestMissionNumber = 0;
 LinkedList<Mission> Missions;
 Mission* createMission(int MissionNumber, LaunchSite* LaunchSiteName, string Title, string Description, Date date, int LaunchSuccess) {
 	Mission m;
@@ -257,6 +295,9 @@ Mission* createMission(int MissionNumber, LaunchSite* LaunchSiteName, string Tit
 	strcpy(Description, m.Description, 400);
 	m.date = date;
 	m.LaunchSuccess = LaunchSuccess;
+
+	if (MissionNumber > Mission::highestMissionNumber) Mission::highestMissionNumber = MissionNumber;
+
 	Missions.push_back(m);
 	return Missions.back();
 }
