@@ -7,6 +7,12 @@ sql::Driver *driver=nullptr;
 sql::Connection *con=nullptr;
 sql::Statement *stmt = nullptr;
 
+void printSQLError(sql::SQLException &e) {
+	cout << "# ERR: " << e.what();
+	cout << " (MySQL error code: " << e.getErrorCode();
+	cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+}
+
 void connectToDatabase(string address, string schema, string username, string password) {
 	try {
 		driver = get_driver_instance();
@@ -14,29 +20,8 @@ void connectToDatabase(string address, string schema, string username, string pa
 		con->setSchema(schema);
 		stmt = con->createStatement();
 	} catch (sql::SQLException &e) {
-		cout << "# ERR: SQLException in " << __FILE__;
-		cout << "(" << __FUNCTION__ << ") on line "
-			<< __LINE__ << endl;
-		cout << "# ERR: " << e.what();
-		cout << " (MySQL error code: " << e.getErrorCode();
-		cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+		printSQLError(e);
 	}
-}
-
-//Remember to delete when finished!!!
-sql::ResultSet* executeQuery(string query) {
-	try {
-		return stmt->executeQuery(query);
-	}
-	catch (sql::SQLException &e) {
-		cout << "# ERR: SQLException in " << __FILE__;
-		cout << "(" << __FUNCTION__ << ") on line "
-			<< __LINE__ << endl;
-		cout << "# ERR: " << e.what();
-		cout << " (MySQL error code: " << e.getErrorCode();
-		cout << ", SQLState: " << e.getSQLState() << " )" << endl;
-	}
-	return nullptr;
 }
 
 bool isSQLConnected() {
@@ -48,12 +33,7 @@ void executeSQL(string statement) {
 		stmt->execute(statement);
 	}
 	catch (sql::SQLException &e) {
-		cout << "# ERR: SQLException in " << __FILE__;
-		cout << "(" << __FUNCTION__ << ") on line "
-			<< __LINE__ << endl;
-		cout << "# ERR: " << e.what();
-		cout << " (MySQL error code: " << e.getErrorCode();
-		cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+		printSQLError(e);
 	}
 }
 
@@ -68,4 +48,12 @@ string dropTable(string name) {
 
 string dropTuples(string name) {
 	return "DELETE FROM " + name;
+}
+
+string insertTuples(string table, string tuples) {
+	return "INSERT INTO " + table + " VALUES " + tuples;
+}
+
+string createTable(string name, string structure) {
+	return "CREATE TABLE " + name + " " + structure;
 }
