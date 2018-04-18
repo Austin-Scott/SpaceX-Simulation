@@ -15,11 +15,49 @@
 
 using namespace std;
 
+//Cmd-line arguments to be used in main()
+bool directToDatabase = false;
+bool skip = false;
+bool soft = false;
+bool exclusive = false;
+string address, schema, username, password;
+
+
+void parseCmdLineArgs(int argc, char** argv);
+void printHelp(string name);
+
+int main(int argc, char** argv) {
+	
+	parseCmdLineArgs(argc, argv);
+	
+	//Add required real world launch and landing sites (must be done before data download)
+	cout << "Adding real world Launch and Landing sites..." << endl;
+	addRealWorldLaunchSites();
+	addRealWorldLandingSites();
+
+	if(!skip)
+		getRealData();
+
+	//Add required fictional launch and landing sites (must be done before simulation)
+	cout << "Adding fictional Launch and Landing sites..." << endl;
+	addFictionalLandingSites();
+	addFictionalLaunchSites();
+
+	runSimulation();
+
+	if (directToDatabase)
+		updateDatabase(address, schema, username, password, soft);
+	if(!directToDatabase || (directToDatabase&&!exclusive))
+		writeResultsToFiles();
+
+	cleanAllData();
+}
+
 void printHelp(string name) {
 	cout << "\nDescription: \n Retrieves and/or generates data to populate a simple SpaceX themed database." << endl;
 	cout << "Usage: \n " << name << " [options]" << endl;
 	const string options =
-R"(
+		R"(
 Options:
  -h | --help                                         #Prints help text and aborts program
  -count <number_of_missions_to_generate>             #Sets the number of simulated missions to generate
@@ -54,13 +92,7 @@ Options:
 	cout << options << endl;
 }
 
-int main(int argc, char** argv) {
-	//Parse cmdline arguments
-	bool directToDatabase = false;
-	bool skip = false;
-	bool soft = false;
-	bool exclusive = false;
-	string address, schema, username, password;
+void parseCmdLineArgs(int argc, char** argv) {
 	for (int i = 1; i < argc; i++) {
 		if (strcmp(argv[i], "-count") == 0) {
 			if (argc - i >= 2) {
@@ -70,7 +102,7 @@ int main(int argc, char** argv) {
 			else {
 				cout << "Error: Incorrect number of arguments following count. Aborting." << endl;
 				printHelp(argv[0]);
-				return 0;
+				abort();
 			}
 		}
 		else if (strcmp(argv[i], "-database") == 0) {
@@ -88,12 +120,12 @@ int main(int argc, char** argv) {
 			else {
 				cout << "Error: Incorrect number of strings following database argument. Aborting." << endl;
 				printHelp(argv[0]);
-				return 0;
+				abort();
 			}
 		}
 		else if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) {
 			printHelp(argv[0]);
-			return 0;
+			abort();
 		}
 		else if (strcmp(argv[i], "-skip") == 0) {
 			skip = true;
@@ -103,7 +135,7 @@ int main(int argc, char** argv) {
 		}
 		else if (strcmp(argv[i], "-exclusive") == 0) {
 			exclusive = true;
-		} 
+		}
 		else if (strcmp(argv[i], "-average_flights_per_month") == 0) {
 			if (argc - i >= 2) {
 				i++;
@@ -112,7 +144,7 @@ int main(int argc, char** argv) {
 			else {
 				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
 				printHelp(argv[0]);
-				return 0;
+				abort();
 			}
 		}
 		else if (strcmp(argv[i], "-average_falcon_heavy_flights") == 0) {
@@ -123,7 +155,7 @@ int main(int argc, char** argv) {
 			else {
 				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
 				printHelp(argv[0]);
-				return 0;
+				abort();
 			}
 		}
 		else if (strcmp(argv[i], "-average_successful_launches") == 0) {
@@ -134,7 +166,7 @@ int main(int argc, char** argv) {
 			else {
 				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
 				printHelp(argv[0]);
-				return 0;
+				abort();
 			}
 		}
 		else if (strcmp(argv[i], "-average_successful_landings") == 0) {
@@ -145,7 +177,7 @@ int main(int argc, char** argv) {
 			else {
 				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
 				printHelp(argv[0]);
-				return 0;
+				abort();
 			}
 		}
 		else if (strcmp(argv[i], "-block_five_max_reflights") == 0) {
@@ -156,7 +188,7 @@ int main(int argc, char** argv) {
 			else {
 				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
 				printHelp(argv[0]);
-				return 0;
+				abort();
 			}
 		}
 		else if (strcmp(argv[i], "-lesser_block_max_reflights") == 0) {
@@ -167,7 +199,7 @@ int main(int argc, char** argv) {
 			else {
 				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
 				printHelp(argv[0]);
-				return 0;
+				abort();
 			}
 		}
 		else if (strcmp(argv[i], "-weight_of_dragon") == 0) {
@@ -178,7 +210,7 @@ int main(int argc, char** argv) {
 			else {
 				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
 				printHelp(argv[0]);
-				return 0;
+				abort();
 			}
 		}
 		else if (strcmp(argv[i], "-minimum_payload_weight") == 0) {
@@ -189,7 +221,7 @@ int main(int argc, char** argv) {
 			else {
 				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
 				printHelp(argv[0]);
-				return 0;
+				abort();
 			}
 		}
 		else if (strcmp(argv[i], "-dragon_days_between_flights") == 0) {
@@ -200,7 +232,7 @@ int main(int argc, char** argv) {
 			else {
 				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
 				printHelp(argv[0]);
-				return 0;
+				abort();
 			}
 		}
 		else if (strcmp(argv[i], "-minimum_flight_ready_cores") == 0) {
@@ -211,7 +243,7 @@ int main(int argc, char** argv) {
 			else {
 				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
 				printHelp(argv[0]);
-				return 0;
+				abort();
 			}
 		}
 		else if (strcmp(argv[i], "-minimum_flight_ready_dragons") == 0) {
@@ -222,7 +254,7 @@ int main(int argc, char** argv) {
 			else {
 				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
 				printHelp(argv[0]);
-				return 0;
+				abort();
 			}
 		}
 		else if (strcmp(argv[i], "-maximum_secondary_payloads") == 0) {
@@ -233,7 +265,7 @@ int main(int argc, char** argv) {
 			else {
 				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
 				printHelp(argv[0]);
-				return 0;
+				abort();
 			}
 		}
 		else if (strcmp(argv[i], "-average_flights_with_secondary") == 0) {
@@ -244,7 +276,7 @@ int main(int argc, char** argv) {
 			else {
 				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
 				printHelp(argv[0]);
-				return 0;
+				abort();
 			}
 		}
 		else if (strcmp(argv[i], "-dragon_crew_capacity") == 0) {
@@ -255,7 +287,7 @@ int main(int argc, char** argv) {
 			else {
 				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
 				printHelp(argv[0]);
-				return 0;
+				abort();
 			}
 		}
 		else if (strcmp(argv[i], "-bfs_max_suborbital_flights") == 0) {
@@ -266,7 +298,7 @@ int main(int argc, char** argv) {
 			else {
 				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
 				printHelp(argv[0]);
-				return 0;
+				abort();
 			}
 		}
 		else if (strcmp(argv[i], "-bfs_colony_flights_per_month") == 0) {
@@ -277,7 +309,7 @@ int main(int argc, char** argv) {
 			else {
 				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
 				printHelp(argv[0]);
-				return 0;
+				abort();
 			}
 		}
 		else if (strcmp(argv[i], "-bfr_max_reflights") == 0) {
@@ -288,7 +320,7 @@ int main(int argc, char** argv) {
 			else {
 				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
 				printHelp(argv[0]);
-				return 0;
+				abort();
 			}
 		}
 		else if (strcmp(argv[i], "-bfr_average_successful_launches") == 0) {
@@ -299,7 +331,7 @@ int main(int argc, char** argv) {
 			else {
 				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
 				printHelp(argv[0]);
-				return 0;
+				abort();
 			}
 		}
 		else if (strcmp(argv[i], "-bfr_average_successful_landings") == 0) {
@@ -310,7 +342,7 @@ int main(int argc, char** argv) {
 			else {
 				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
 				printHelp(argv[0]);
-				return 0;
+				abort();
 			}
 		}
 		else if (strcmp(argv[i], "-bfs_minimum_payload_mass") == 0) {
@@ -321,7 +353,7 @@ int main(int argc, char** argv) {
 			else {
 				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
 				printHelp(argv[0]);
-				return 0;
+				abort();
 			}
 		}
 		else if (strcmp(argv[i], "-bfs_maximum_payload_mass") == 0) {
@@ -332,7 +364,7 @@ int main(int argc, char** argv) {
 			else {
 				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
 				printHelp(argv[0]);
-				return 0;
+				abort();
 			}
 		}
 		else if (strcmp(argv[i], "-bfs_colony_stay_duration") == 0) {
@@ -343,7 +375,7 @@ int main(int argc, char** argv) {
 			else {
 				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
 				printHelp(argv[0]);
-				return 0;
+				abort();
 			}
 		}
 		else if (strcmp(argv[i], "-bfs_crew_capacity") == 0) {
@@ -354,30 +386,13 @@ int main(int argc, char** argv) {
 			else {
 				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
 				printHelp(argv[0]);
-				return 0;
+				abort();
 			}
 		}
 		else {
 			cout << "Error: Unknown argument \"" << argv[i] << "\". Aborting." << endl;
 			printHelp(argv[0]);
-			return 0;
+			abort();
 		}
 	}
-	cout << "Adding real world Launch and Landing sites..." << endl;
-	addRealWorldLaunchSites();
-	addRealWorldLandingSites();
-	if(!skip)
-		getRealData();
-
-	cout << "Adding fictional Launch and Landing sites..." << endl;
-	addFictionalLandingSites();
-	addFictionalLaunchSites();
-	runSimulation();
-
-	if (directToDatabase)
-		updateDatabase(address, schema, username, password, soft);
-	if(!directToDatabase || (directToDatabase&&!exclusive))
-		writeResultsToFiles();
-
-	cleanAllData();
 }

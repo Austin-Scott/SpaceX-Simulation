@@ -41,19 +41,3 @@ void disconnectFromDatabase() {
 	delete stmt;
 	delete con;
 }
-
-string dropTable(string name) {
-	return "DROP TABLE IF EXISTS " + name;
-}
-
-string dropTuples(string name) {
-	return "DELETE FROM " + name;
-}
-
-string insertTuples(string table, string tuples) {
-	return "INSERT INTO " + table + " VALUES " + tuples;
-}
-
-string createTable(string name, string structure) {
-	return "CREATE TABLE " + name + " " + structure;
-}

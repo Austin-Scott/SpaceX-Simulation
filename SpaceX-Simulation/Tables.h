@@ -9,6 +9,15 @@ const string NullIndicator = "\\N";
 
 #include "Utility.h"
 
+/*
+Each table must have the following public elements:
+ string getTuple();                  <-Returns a SQL formatted string of the current object
+ string getRow();                    <-Returns a TXT dataloading formattted string of the current object
+ static LinkedList<table_type> LL;   <-LinkedList of the current table type to store all rows of the table (instances of the struct)
+ static string getStructure();       <-Returns SQL formatted string of the attributes of the table when in a database
+ static string getName();            <-Returns the name of the table
+*/
+
 //Booster table
 struct Booster {
 	char BoosterID[5]; //Primary Key
@@ -27,6 +36,14 @@ struct Booster {
 		result += ")";
 		return result;
 	}
+
+	string getRow() {
+		string blockNumber = BlockNumber != INT_MIN ? to_string(BlockNumber) : NullIndicator;
+		return to_string(BoosterID, 5) + V() + to_string(FlightStatus) + V() + to_string(CoreType) + V() + blockNumber + T();
+	}
+
+	static LinkedList<Booster> LL;
+
 	static string getStructure() {
 		return " ( BoosterID char(5) not null, FlightStatus varchar(50), CoreType varchar(25), BlockNumber int, primary key (BoosterID))";
 	}
@@ -41,8 +58,8 @@ struct Booster {
 private:
 	static int highestBoosterID;
 };
+LinkedList<Booster> Booster::LL = LinkedList<Booster>();
 int Booster::highestBoosterID = 0;
-LinkedList<Booster> Boosters;
 Booster* createBooster(string BoosterID, string FlightStatus, string CoreType, int BlockNumber) {
 	Booster b;
 	strcpy(BoosterID, b.BoosterID, 5, false);
@@ -54,25 +71,16 @@ Booster* createBooster(string BoosterID, string FlightStatus, string CoreType, i
 	int boosterNum = atoi(BoosterID.substr(1, 4).c_str());
 	if (boosterNum > Booster::highestBoosterID) Booster::highestBoosterID = boosterNum;
 
-	Boosters.push_back(b);
-	return Boosters.back();
+	Booster::LL.push_back(b);
+	return Booster::LL.back();
 }
 Booster* findBooster(string BoosterID) {
-	for (auto i = Boosters.begin(); i.hasNext(); i.operator++()) {
+	for (auto i = Booster::LL.begin(); i.hasNext(); i.operator++()) {
 		Booster* p = &i;
 		if (stringcmp(BoosterID, p->BoosterID, 5, false))
 			return p;
 	}
 	return nullptr;
-}
-string listBoosters() {
-	string result = "";
-	for (auto i = Boosters.begin(); i.hasNext(); i.operator++()) {
-		auto p = &i;
-		string blockNumber = p->BlockNumber != INT_MIN ? to_string(p->BlockNumber) : NullIndicator;
-		result += to_string(p->BoosterID, 5) + V() + to_string(p->FlightStatus) + V() + to_string(p->CoreType) + V() + blockNumber + T();
-	}
-	return result;
 }
 //End Booster table
 
@@ -91,6 +99,13 @@ struct Dragon {
 		result += ")";
 		return result;
 	}
+
+	string getRow() {
+		return to_string(SerialNumber, 4) + V() + to_string(Description) + V() + boolToListString(BFS) + V() + boolToListString(FlightActive) + T();
+	}
+
+	static LinkedList<Dragon> LL;
+
 	static string getStructure() {
 		return " ( SerialNumber char(4) not null, Description varchar(400), BFS boolean, FlightActive boolean, primary key(SerialNumber) )";
 	}
@@ -106,8 +121,8 @@ struct Dragon {
 private:
 	static int highestSerialNumber;
 };
+LinkedList<Dragon> Dragon::LL = LinkedList<Dragon>();
 int Dragon::highestSerialNumber = 0;
-LinkedList<Dragon> Dragons;
 Dragon* createDragon(string SerialNumber, string Description, int BFS, int FlightActive) {
 	Dragon d;
 	strcpy(SerialNumber, d.SerialNumber, 4, false);
@@ -118,24 +133,16 @@ Dragon* createDragon(string SerialNumber, string Description, int BFS, int Fligh
 	int capsuleNum = atoi(SerialNumber.substr(1, 3).c_str());
 	if (capsuleNum > Dragon::highestSerialNumber) Dragon::highestSerialNumber = capsuleNum;
 
-	Dragons.push_back(d);
-	return Dragons.back();
+	Dragon::LL.push_back(d);
+	return Dragon::LL.back();
 }
 Dragon* findDragon(string SerialNumber) {
-	for (auto i = Dragons.begin(); i.hasNext(); i.operator++()) {
+	for (auto i = Dragon::LL.begin(); i.hasNext(); i.operator++()) {
 		Dragon* p = &i;
 		if (stringcmp(SerialNumber, p->SerialNumber, 4, false))
 			return p;
 	}
 	return nullptr;
-}
-string listDragons() {
-	string result = "";
-	for (auto i = Dragons.begin(); i.hasNext(); i.operator++()) {
-		auto p = &i;
-		result += to_string(p->SerialNumber, 4) + V() + to_string(p->Description) + V() + boolToListString(p->BFS) + V() + boolToListString(p->FlightActive) + T();
-	}
-	return result;
 }
 //End Dragon table
 
@@ -156,12 +163,19 @@ struct LaunchSite {
 		result += ")";
 		return result;
 	}
+
+	string getRow() {
+		return to_string(SiteID) + V() + to_string(Name) + V() + to_string(Location) + V() + boolToListString(Active) + V() + boolToListString(BFR) + T();
+	}
+
+	static LinkedList<LaunchSite> LL;
+
 	static string getStructure() {
 		return " (SiteID varchar(25) not null, Name varchar(255), Location varchar(255), Active boolean, BFR boolean, primary key(SiteID))";
 	}
 	static string getName() { return "LaunchSite";  }
 };
-LinkedList<LaunchSite> LaunchSites;
+LinkedList<LaunchSite> LaunchSite::LL = LinkedList<LaunchSite>();
 LaunchSite* createLaunchSite(string SiteID, string Name, string Location, int Active, int BFR) {
 	LaunchSite l;
 	strcpy(SiteID, l.SiteID, 25);
@@ -169,11 +183,11 @@ LaunchSite* createLaunchSite(string SiteID, string Name, string Location, int Ac
 	strcpy(Location, l.Location, 255);
 	l.Active = Active;
 	l.BFR = BFR;
-	LaunchSites.push_back(l);
-	return LaunchSites.back();
+	LaunchSite::LL.push_back(l);
+	return LaunchSite::LL.back();
 }
 LaunchSite* findLaunchSite(string SiteID) {
-	for (auto i = LaunchSites.begin(); i.hasNext(); i.operator++()) {
+	for (auto i = LaunchSite::LL.begin(); i.hasNext(); i.operator++()) {
 		LaunchSite* p = &i;
 		if (stringcmp(SiteID, p->SiteID, 25))
 			return p;
@@ -188,14 +202,6 @@ LaunchSite* findOrCreateLaunchSite(string SiteID, string Name, string Location, 
 	else {
 		return result;
 	}
-}
-string listLaunchSites() {
-	string result = "";
-	for (auto i = LaunchSites.begin(); i.hasNext(); i.operator++()) {
-		auto p = &i;
-		result += to_string(p->SiteID) + V() + to_string(p->Name) + V() + to_string(p->Location) + V() + boolToListString(p->Active)+ V() + boolToListString(p->BFR) + T();
-	}
-	return result;
 }
 //End LaunchSite table
 
@@ -212,22 +218,29 @@ struct LandingSite {
 		result += ")";
 		return result;
 	}
+
+	string getRow() {
+		return to_string(SiteID) + V() + to_string(Name) + V() + boolToListString(BFR) + T();
+	}
+
+	static LinkedList<LandingSite> LL;
+
 	static string getStructure() {
 		return "(SiteID varchar(25) not null,Name varchar(255), BFR boolean, primary key(SiteID))";
 	}
 	static string getName() { return "LandingSite"; }
 };
-LinkedList<LandingSite> LandingSites;
+LinkedList<LandingSite> LandingSite::LL = LinkedList<LandingSite>();
 LandingSite* createLandingSite(string SiteID, string Name, int BFR) {
 	LandingSite l;
 	strcpy(SiteID, l.SiteID, 25);
 	strcpy(Name, l.Name, 255);
 	l.BFR = BFR;
-	LandingSites.push_back(l);
-	return LandingSites.back();
+	LandingSite::LL.push_back(l);
+	return LandingSite::LL.back();
 }
 LandingSite* findLandingSite(string SiteID) {
-	for (auto i = LandingSites.begin(); i.hasNext(); i.operator++()) {
+	for (auto i = LandingSite::LL.begin(); i.hasNext(); i.operator++()) {
 		LandingSite* p = &i;
 		if (stringcmp(SiteID, p->SiteID, 25))
 			return p;
@@ -242,14 +255,6 @@ LandingSite* findOrCreateLandingSite(string SiteID, string Name, int BFR) {
 	else {
 		return result;
 	}
-}
-string listLandingSites() {
-	string result = "";
-	for (auto i = LandingSites.begin(); i.hasNext(); i.operator++()) {
-		auto p = &i;
-		result += to_string(p->SiteID) + V() + to_string(p->Name) + V() + boolToListString(p->BFR) + T();
-	}
-	return result;
 }
 //End LandingSite table
 
@@ -272,6 +277,12 @@ struct Mission {
 		result += ")";
 		return result;
 	}
+	string getRow() {
+		return to_string(MissionNumber) + V() + to_string(LaunchSiteName->Name) + V() + to_string(Title) + V() + to_string(Description) + V() + to_string(date) + V() + boolToListString(LaunchSuccess) + T();
+	}
+
+	static LinkedList<Mission> LL;
+
 	static string getStructure() {
 		return " (MissionNumber int not null, LaunchSite varchar(25) not null, Title varchar(255), Description varchar(400), Date date, LaunchSuccess boolean, primary key(MissionNumber),foreign key(LaunchSite) references LaunchSite(SiteID))";
 	}
@@ -285,8 +296,8 @@ struct Mission {
 private:
 	static int highestMissionNumber;
 };
+LinkedList<Mission> Mission::LL = LinkedList<Mission>();
 int Mission::highestMissionNumber = 0;
-LinkedList<Mission> Missions;
 Mission* createMission(int MissionNumber, LaunchSite* LaunchSiteName, string Title, string Description, Date date, int LaunchSuccess) {
 	Mission m;
 	m.MissionNumber = MissionNumber;
@@ -298,23 +309,15 @@ Mission* createMission(int MissionNumber, LaunchSite* LaunchSiteName, string Tit
 
 	if (MissionNumber > Mission::highestMissionNumber) Mission::highestMissionNumber = MissionNumber;
 
-	Missions.push_back(m);
-	return Missions.back();
+	Mission::LL.push_back(m);
+	return Mission::LL.back();
 }
 Mission* findMission(int MissionNumber) {
-	for (auto i = Missions.begin(); i.hasNext(); i.operator++()) {
+	for (auto i = Mission::LL.begin(); i.hasNext(); i.operator++()) {
 		Mission* p = &i;
 		if (p->MissionNumber == MissionNumber) return p;
 	}
 	return nullptr;
-}
-string listMissions() {
-	string result = "";
-	for (auto i = Missions.begin(); i.hasNext(); i.operator++()) {
-		auto p = &i;
-		result += to_string(p->MissionNumber) + V() + to_string(p->LaunchSiteName->Name) + V() + to_string(p->Title) + V() + to_string(p->Description) + V() + to_string(p->date) + V() + boolToListString(p->LaunchSuccess) + T();
-	}
-	return result;
 }
 //End Mission Table
 
@@ -334,12 +337,19 @@ struct flownBy {
 		result += ")";
 		return result;
 	}
+	string getRow() {
+		string landSite = LandSite == nullptr ? NullIndicator : to_string(LandSite->SiteID);
+		return to_string(BoosterID->BoosterID, 5) + V() + to_string(MissionNumber->MissionNumber) + V() + landSite + V() + to_string(LandingOutcome) + V() + boolToListString(LandingSuccess) + T();
+	}
+
+	static LinkedList<flownBy> LL;
+
 	static string getStructure() {
 		return "(BoosterID char(5) not null,MissionNumber int not null,LandingSite varchar(25),LandingOutcome varchar(50), LandingSuccess boolean, primary key(BoosterID, MissionNumber),foreign key(BoosterID) references Booster(BoosterID),foreign key(MissionNumber) references Mission(MissionNumber), foreign key(LandingSite) references LandingSite(SiteID))";
 	}
 	static string getName() { return "flownBy";  }
 };
-LinkedList<flownBy> flownBys;
+LinkedList<flownBy> flownBy::LL = LinkedList<flownBy>();
 flownBy* createFlownBy(Booster* BoosterID, Mission* MissionNumber, LandingSite* LandingSite, string LandingOutcome, int LandingSuccess) {
 	flownBy f;
 	f.BoosterID = BoosterID;
@@ -347,25 +357,16 @@ flownBy* createFlownBy(Booster* BoosterID, Mission* MissionNumber, LandingSite* 
 	f.LandSite = LandingSite;
 	strcpy(LandingOutcome, f.LandingOutcome, 50);
 	f.LandingSuccess = LandingSuccess;
-	flownBys.push_back(f);
-	return flownBys.back();
+	flownBy::LL.push_back(f);
+	return flownBy::LL.back();
 }
 flownBy* findFlownBy(Booster* BoosterID, Mission* MissionNumber) {
-	for (auto i = flownBys.begin(); i.hasNext(); i.operator++()) {
+	for (auto i = flownBy::LL.begin(); i.hasNext(); i.operator++()) {
 		flownBy* p = &i;
 		if (p->BoosterID == BoosterID&&p->MissionNumber == MissionNumber)
 			return p;
 	}
 	return nullptr;
-}
-string listflownBys() {
-	string result = "";
-	for (auto i = flownBys.begin(); i.hasNext(); i.operator++()) {
-		auto p = &i;
-		string landSite = p->LandSite == nullptr ? NullIndicator : to_string(p->LandSite->SiteID);
-		result += to_string(p->BoosterID->BoosterID, 5) + V() + to_string(p->MissionNumber->MissionNumber) + V() + landSite + V() + to_string(p->LandingOutcome) + V() + boolToListString(p->LandingSuccess) + T();
-	}
-	return result;
 }
 //End flownBy table
 
@@ -394,12 +395,21 @@ struct Payload {
 		result += ")";
 		return result;
 	}
+	string getRow() {
+		string payloadMass = PayloadMass != INT_MIN ? to_string(PayloadMass) : NullIndicator;
+		string dragonSerial = DragonSerial != nullptr ? to_string(DragonSerial->SerialNumber, 4) : NullIndicator;
+		string destinationSite = DestinationSite == nullptr ? NullIndicator : to_string(DestinationSite->SiteID);
+		return to_string(Title) + V() + to_string(MissionNumber->MissionNumber) + V() + destinationSite + V() + dragonSerial + V() + to_string(Orbit) + V() + payloadMass + V() + to_string(Supplier) + V() + to_string(MissionOutcome) + V() + to_string(CrewMembers) + T();
+	}
+
+	static LinkedList<Payload> LL;
+
 	static string getStructure() {
 		return "(Title varchar(100) not null, MissionNumber int not null, DestinationSite varchar(25), DragonSerial char(4), Orbit varchar(50),PayloadMass int,Supplier varchar(50),MissionOutcome varchar(50), CrewMembers int, primary key(Title, MissionNumber), foreign key(DestinationSite) references LandingSite(SiteID), foreign key(DragonSerial) references Dragon(SerialNumber),foreign key(MissionNumber) references Mission(MissionNumber))";
 	}
 	static string getName() { return "Payload";  }
 };
-LinkedList<Payload> Payloads;
+LinkedList<Payload> Payload::LL = LinkedList<Payload>();
 Payload* createPayload(string Title, Mission* MissionNumber, LandingSite* DestinationSite, Dragon* DragonSerial, string Orbit, int PayloadMass, string Supplier, string MissionOutcome, int CrewMembers) {
 	Payload p;
 	strcpy(Title, p.Title, 100);
@@ -411,88 +421,91 @@ Payload* createPayload(string Title, Mission* MissionNumber, LandingSite* Destin
 	strcpy(Supplier, p.Supplier, 50);
 	strcpy(MissionOutcome, p.MissionOutcome, 50);
 	p.CrewMembers = CrewMembers;
-	Payloads.push_back(p);
-	return Payloads.back();
+	Payload::LL.push_back(p);
+	return Payload::LL.back();
 }
 Payload* findPayload(string Title) {
-	for (auto i = Payloads.begin(); i.hasNext(); i.operator++()) {
+	for (auto i = Payload::LL.begin(); i.hasNext(); i.operator++()) {
 		Payload* p = &i;
 		if (stringcmp(Title, p->Title, 100))
 			return p;
 	}
 	return nullptr;
 }
-string listPayloads() {
-	string result = "";
-	for (auto i = Payloads.begin(); i.hasNext(); i.operator++()) {
-		auto p = &i;
-		string payloadMass = p->PayloadMass != INT_MIN ? to_string(p->PayloadMass) : NullIndicator;
-		string dragonSerial = p->DragonSerial != nullptr ? to_string(p->DragonSerial->SerialNumber, 4) : NullIndicator;
-		string destinationSite = p->DestinationSite == nullptr ? NullIndicator : to_string(p->DestinationSite->SiteID);
-		result += to_string(p->Title) + V() + to_string(p->MissionNumber->MissionNumber) + V() + destinationSite + V() + dragonSerial + V() + to_string(p->Orbit) + V() + payloadMass + V() + to_string(p->Supplier) + V() + to_string(p->MissionOutcome) + V() + to_string(p->CrewMembers) + T();
-	}
-	return result;
-}
 //End Payload table
 
 //Functions involving all tables
 
+template<class T> void deleteData() {
+	T::LL.deleteAll();
+}
+
 void cleanAllData() {
-	Boosters.deleteAll();
-	flownBys.deleteAll();
-	Missions.deleteAll();
-	Payloads.deleteAll();
-	Dragons.deleteAll();
-	LaunchSites.deleteAll();
-	LandingSites.deleteAll();
+	deleteData<Booster>();
+	deleteData<flownBy>();
+	deleteData<Mission>();
+	deleteData<Payload>();
+	deleteData<Dragon>();
+	deleteData<LaunchSite>();
+	deleteData<LandingSite>();
+}
+
+template<class T> string getRows() {
+	string result = "";
+	for (auto i = T::LL.begin(); i.hasNext(); i.operator++()) {
+		result += (&i)->getRow();
+	}
+	return result;
+}
+
+template<class T> void writeToFile() {
+	ofstream file("output/" + T::getName() + ".txt", ios::out);
+	if (file) {
+		file << getRows<T>();
+	}
+	file.close();
 }
 
 void writeResultsToFiles() {
 	cout << "Outputing results to files..." << endl;
 
-	ofstream boosterFile("output/Booster.txt", ios::out);
-	if (boosterFile) {
-		boosterFile << listBoosters();
-	}
-	boosterFile.close();
-
-	ofstream flownByFile("output/flownBy.txt", ios::out);
-	if (flownByFile) {
-		flownByFile << listflownBys();
-	}
-	flownByFile.close();
-
-	ofstream MissionFile("output/Mission.txt", ios::out);
-	if (MissionFile) {
-		MissionFile << listMissions();
-	}
-	MissionFile.close();
-
-	ofstream PayloadFile("output/Payload.txt", ios::out);
-	if (PayloadFile) {
-		PayloadFile << listPayloads();
-	}
-	PayloadFile.close();
-
-	ofstream DragonFile("output/Dragon.txt", ios::out);
-	if (DragonFile) {
-		DragonFile << listDragons();
-	}
-	DragonFile.close();
-
-	ofstream LaunchSiteFile("output/LaunchSite.txt", ios::out);
-	if (LaunchSiteFile) {
-		LaunchSiteFile << listLaunchSites();
-	}
-	LaunchSiteFile.close();
-
-	ofstream LandingSiteFile("output/LandingSite.txt", ios::out);
-	if (LandingSiteFile) {
-		LandingSiteFile << listLandingSites();
-	}
-	LandingSiteFile.close();
+	writeToFile<Booster>();
+	writeToFile<flownBy>();
+	writeToFile<Mission>();
+	writeToFile<Payload>();
+	writeToFile<Dragon>();
+	writeToFile<LaunchSite>();
+	writeToFile<LandingSite>();
 
 	cout << "Done." << endl;
+}
+
+//MySQL database functions
+
+template<class T> void dropTable() {
+	executeSQL("DROP TABLE IF EXISTS " + T::getName());
+}
+
+template<class T> void dropTuples() {
+	executeSQL("DELETE FROM " + T::getName());
+}
+
+template<class T> void insertTuples(string tuples) {
+	executeSQL("INSERT INTO " + T::getName() + " VALUES " + tuples);
+}
+
+template<class T> void createTable() {
+	executeSQL("CREATE TABLE " + T::getName() + " " + T::getStructure());
+}
+
+template<class T> void addTuples() {
+	string tuples = "";
+	cout << "Inserting tuples into " << T::getName() << "..." << endl;
+	for (auto iter = T::LL.begin(); iter.hasNext(); iter.operator++()) {
+		tuples += (&iter)->getTuple();
+		if ((iter + 1).hasNext()) tuples += ", ";
+	}
+	insertTuples<T>(tuples);
 }
 
 void updateDatabase(string address, string schema, string username, string password, bool soft) {
@@ -504,94 +517,46 @@ void updateDatabase(string address, string schema, string username, string passw
 		if (soft) {
 			cout << "Dropping all tuples from tables..." << endl;
 			//drop all tuples
-			executeSQL(dropTuples(flownBy::getName()));
-			executeSQL(dropTuples(Payload::getName()));
-			executeSQL(dropTuples(Booster::getName()));
-			executeSQL(dropTuples(Dragon::getName()));
-			executeSQL(dropTuples(Mission::getName()));
-			executeSQL(dropTuples(LaunchSite::getName()));
-			executeSQL(dropTuples(LandingSite::getName()));
+			dropTuples<flownBy>();
+			dropTuples<Payload>();
+			dropTuples<Booster>();
+			dropTuples<Dragon>();
+			dropTuples<Mission>();
+			dropTuples<LaunchSite>();
+			dropTuples<LandingSite>();
 		}
 		else {
 
 			cout << "Dropping any pre-existing tables..." << endl;
 			//Drop tables if they exist
-			executeSQL(dropTable(flownBy::getName()));
-			executeSQL(dropTable(Payload::getName()));
-			executeSQL(dropTable(Booster::getName()));
-			executeSQL(dropTable(Dragon::getName()));
-			executeSQL(dropTable(Mission::getName()));
-			executeSQL(dropTable(LaunchSite::getName()));
-			executeSQL(dropTable(LandingSite::getName()));
+			dropTable<flownBy>();
+			dropTable<Payload>();
+			dropTable<Booster>();
+			dropTable<Dragon>();
+			dropTable<Mission>();
+			dropTable<LaunchSite>();
+			dropTable<LandingSite>();
 
 			cout << "Creating tables..." << endl;
 			//Re-create the dropped tables
-			executeSQL(createTable(Booster::getName(), Booster::getStructure()));
-			executeSQL(createTable(Dragon::getName(), Dragon::getStructure()));
-			executeSQL(createTable(LandingSite::getName(), LandingSite::getStructure()));
-			executeSQL(createTable(LaunchSite::getName(), LaunchSite::getStructure()));
-			executeSQL(createTable(Mission::getName(), Mission::getStructure()));
-			executeSQL(createTable(flownBy::getName(), flownBy::getStructure()));
-			executeSQL(createTable(Payload::getName(), Payload::getStructure()));
+			createTable<Booster>();
+			createTable<Dragon>();
+			createTable<LandingSite>();
+			createTable<LaunchSite>();
+			createTable<Mission>();
+			createTable<flownBy>();
+			createTable<Payload>();
 
 		}
 
 		//Populate the database
-		string tuples = "";
-		cout << "Inserting tuples into " << Booster::getName() << "..." << endl;
-		for (auto iter = Boosters.begin(); iter.hasNext(); iter.operator++()) {
-			tuples += (&iter)->getTuple();
-			if ((iter+1).hasNext()) tuples += ", ";
-		}
-		executeSQL(insertTuples(Booster::getName(), tuples));
-
-		tuples = "";
-		cout << "Inserting tuples into " << Dragon::getName() << "..." << endl;
-		for (auto iter = Dragons.begin(); iter.hasNext(); iter.operator++()) {
-			tuples += (&iter)->getTuple();
-			if ((iter + 1).hasNext()) tuples += ", ";
-		}
-		executeSQL(insertTuples(Dragon::getName(), tuples));
-
-		tuples = "";
-		cout << "Inserting tuples into " << LaunchSite::getName() << "..." << endl;
-		for (auto iter = LaunchSites.begin(); iter.hasNext(); iter.operator++()) {
-			tuples += (&iter)->getTuple();
-			if ((iter + 1).hasNext()) tuples += ", ";
-		}
-		executeSQL(insertTuples(LaunchSite::getName(), tuples));
-
-		tuples = "";
-		cout << "Inserting tuples into " << LandingSite::getName() << "..." << endl;
-		for (auto iter = LandingSites.begin(); iter.hasNext(); iter.operator++()) {
-			tuples += (&iter)->getTuple();
-			if ((iter + 1).hasNext()) tuples += ", ";
-		}
-		executeSQL(insertTuples(LandingSite::getName(), tuples));
-
-		tuples = "";
-		cout << "Inserting tuples into " << Mission::getName() << "..." << endl;
-		for (auto iter = Missions.begin(); iter.hasNext(); iter.operator++()) {
-			tuples += (&iter)->getTuple();
-			if ((iter + 1).hasNext()) tuples += ", ";
-		}
-		executeSQL(insertTuples(Mission::getName(), tuples));
-
-		tuples = "";
-		cout << "Inserting tuples into " << flownBy::getName() << "..." << endl;
-		for (auto iter = flownBys.begin(); iter.hasNext(); iter.operator++()) {
-			tuples += (&iter)->getTuple();
-			if ((iter + 1).hasNext()) tuples += ", ";
-		}
-		executeSQL(insertTuples(flownBy::getName(), tuples));
-
-		tuples = "";
-		cout << "Inserting tuples into " << Payload::getName() << "..." << endl;
-		for (auto iter = Payloads.begin(); iter.hasNext(); iter.operator++()) {
-			tuples += (&iter)->getTuple();
-			if ((iter + 1).hasNext()) tuples += ", ";
-		}
-		executeSQL(insertTuples(Payload::getName(), tuples));
+		addTuples<Booster>();
+		addTuples<Dragon>();
+		addTuples<LaunchSite>();
+		addTuples<LandingSite>();
+		addTuples<Mission>();
+		addTuples<flownBy>();
+		addTuples<Payload>();
 
 		cout << "Complete. Disconnecting from database." << endl;
 
