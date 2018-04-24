@@ -45,7 +45,7 @@ struct Booster {
 	static LinkedList<Booster> LL;
 
 	static string getStructure() {
-		return " ( BoosterID char(5) not null, FlightStatus varchar(50), CoreType varchar(25), BlockNumber int, primary key (BoosterID))";
+		return " ( BoosterID CHAR(5) NOT NULL, FlightStatus VARCHAR(50), CoreType VARCHAR(25), BlockNumber INT, PRIMARY KEY (BoosterID))";
 	}
 	static string getName() { return "Booster";  }
 
@@ -107,7 +107,7 @@ struct Dragon {
 	static LinkedList<Dragon> LL;
 
 	static string getStructure() {
-		return " ( SerialNumber char(4) not null, Description varchar(400), BFS boolean, FlightActive boolean, primary key(SerialNumber) )";
+		return " ( SerialNumber CHAR(4) NOT NULL, Description VARCHAR(400), BFS BOOLEAN, FlightActive BOOLEAN, PRIMARY KEY(SerialNumber) )";
 	}
 	static string getName() { return "Dragon";  }
 
@@ -171,7 +171,7 @@ struct LaunchSite {
 	static LinkedList<LaunchSite> LL;
 
 	static string getStructure() {
-		return " (SiteID varchar(25) not null, Name varchar(255), Location varchar(255), Active boolean, BFR boolean, primary key(SiteID))";
+		return " (SiteID VARCHAR(25) NOT NULL, Name VARCHAR(255), Location VARCHAR(255), Active BOOLEAN, BFR BOOLEAN, PRIMARY KEY(SiteID))";
 	}
 	static string getName() { return "LaunchSite";  }
 };
@@ -226,7 +226,7 @@ struct LandingSite {
 	static LinkedList<LandingSite> LL;
 
 	static string getStructure() {
-		return "(SiteID varchar(25) not null,Name varchar(255), BFR boolean, primary key(SiteID))";
+		return "(SiteID VARCHAR(25) NOT NULL, Name VARCHAR(255), BFR BOOLEAN, PRIMARY KEY(SiteID))";
 	}
 	static string getName() { return "LandingSite"; }
 };
@@ -284,7 +284,7 @@ struct Mission {
 	static LinkedList<Mission> LL;
 
 	static string getStructure() {
-		return " (MissionNumber int not null, LaunchSite varchar(25) not null, Title varchar(255), Description varchar(400), Date date, LaunchSuccess boolean, primary key(MissionNumber),foreign key(LaunchSite) references LaunchSite(SiteID))";
+		return " (MissionNumber INT NOT NULL, LaunchSite VARCHAR(25) NOT NULL, Title VARCHAR(255), Description VARCHAR(400), Date DATE, LaunchSuccess BOOLEAN, PRIMARY KEY(MissionNumber), FOREIGN KEY(LaunchSite) REFERENCES LaunchSite(SiteID) ON UPDATE CASCADE ON DELETE RESTRICT)";
 	}
 	static string getName() { return "Mission";  }
 
@@ -345,7 +345,7 @@ struct flownBy {
 	static LinkedList<flownBy> LL;
 
 	static string getStructure() {
-		return "(BoosterID char(5) not null,MissionNumber int not null,LandingSite varchar(25),LandingOutcome varchar(50), LandingSuccess boolean, primary key(BoosterID, MissionNumber),foreign key(BoosterID) references Booster(BoosterID),foreign key(MissionNumber) references Mission(MissionNumber), foreign key(LandingSite) references LandingSite(SiteID))";
+		return "(BoosterID CHAR(5) NOT NULL, MissionNumber INT NOT NULL, LandingSite VARCHAR(25), LandingOutcome VARCHAR(50), LandingSuccess BOOLEAN, PRIMARY KEY(BoosterID, MissionNumber), FOREIGN KEY(BoosterID) REFERENCES Booster(BoosterID) ON UPDATE CASCADE ON DELETE RESTRICT, FOREIGN KEY(MissionNumber) REFERENCES Mission(MissionNumber) ON UPDATE CASCADE ON DELETE RESTRICT, FOREIGN KEY(LandingSite) REFERENCES LandingSite(SiteID) ON UPDATE CASCADE ON DELETE SET NULL)";
 	}
 	static string getName() { return "flownBy";  }
 };
@@ -405,7 +405,7 @@ struct Payload {
 	static LinkedList<Payload> LL;
 
 	static string getStructure() {
-		return "(Title varchar(100) not null, MissionNumber int not null, DestinationSite varchar(25), DragonSerial char(4), Orbit varchar(50),PayloadMass int,Supplier varchar(50),MissionOutcome varchar(50), CrewMembers int, primary key(Title, MissionNumber), foreign key(DestinationSite) references LandingSite(SiteID), foreign key(DragonSerial) references Dragon(SerialNumber),foreign key(MissionNumber) references Mission(MissionNumber))";
+		return "(Title VARCHAR(100) NOT NULL, MissionNumber INT NOT NULL, DestinationSite VARCHAR(25), DragonSerial CHAR(4), Orbit VARCHAR(50), PayloadMass INT, Supplier VARCHAR(50), MissionOutcome VARCHAR(50), CrewMembers INT, PRIMARY KEY(Title, MissionNumber), FOREIGN KEY(DestinationSite) REFERENCES LandingSite(SiteID) ON UPDATE CASCADE ON DELETE SET NULL, FOREIGN KEY(DragonSerial) REFERENCES Dragon(SerialNumber) ON UPDATE CASCADE ON DELETE SET NULL, FOREIGN KEY(MissionNumber) REFERENCES Mission(MissionNumber) ON UPDATE CASCADE ON DELETE RESTRICT)";
 	}
 	static string getName() { return "Payload";  }
 };
