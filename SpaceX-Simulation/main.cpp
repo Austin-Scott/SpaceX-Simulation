@@ -88,6 +88,7 @@ Options:
  -bfs_maximum_payload_mass <payload_mass>            #Sets the maximum payload mass of a BFS payload
  -bfs_colony_stay_duration <days_at_colony>          #Sets the number of days a BFS will stay at a colony
  -bfs_crew_capacity <crew_members>                   #Sets the maximum number of crew members that can fly on BFS
+ -bfr_flight_operational <date_bfr_flights_start>    #Sets the day BFR flights can start. Format: "YYYY-MM-DD"
 )";
 	cout << options << endl;
 }
@@ -382,6 +383,17 @@ void parseCmdLineArgs(int argc, char** argv) {
 			if (argc - i >= 2) {
 				i++;
 				BFS_CREW_CAPACITY = atoi(argv[i]);
+			}
+			else {
+				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
+				printHelp(argv[0]);
+				abort();
+			}
+		}
+		else if (strcmp(argv[i], "-bfr_flight_operational") == 0) {
+			if (argc - i >= 2) {
+				i++;
+				BFR_FLIGHT_OPERATIONAL = Date(string(argv[i]));
 			}
 			else {
 				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;

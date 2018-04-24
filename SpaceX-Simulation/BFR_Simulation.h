@@ -49,6 +49,21 @@ void addPlanetaryBFRPads() {
 	planetaryPads.emplace_back("sol", "Seoul", "Earth, Asia, South Korea");
 	planetaryPads.emplace_back("tko", "Tokyo", "Earth, Asia, Japan");
 	planetaryPads.emplace_back("sdy", "Sydney", "Earth, Australia, New South Wales");
+	planetaryPads.emplace_back("hnk", "Hong Kong", "Earth, Asia, China");
+	planetaryPads.emplace_back("sgp", "Singapore", "Earth, Asia, Singapore");
+	planetaryPads.emplace_back("trt", "Toronto", "Earth, North America, Canada");
+	planetaryPads.emplace_back("bgk", "Bangkok", "Earth, Asia, Thailand");
+	planetaryPads.emplace_back("dbi", "Dubai", "Earth, Middle East, United Arab Emirates");
+	planetaryPads.emplace_back("par", "Paris", "Earth, Europe, France");
+	planetaryPads.emplace_back("hlu", "Honolulu", "Earth, Pacific, Hawaii");
+	planetaryPads.emplace_back("dli", "Delhi", "Earth, South Asia, India");
+	planetaryPads.emplace_back("mbn", "Melbourne", "Earth, Australia, Victoria");
+	planetaryPads.emplace_back("cpt", "Cape Town", "Earth, Africa, South Africa");
+	planetaryPads.emplace_back("bua", "Buenos Aires", "Earth, South America, Argentina");
+	planetaryPads.emplace_back("jhb", "Johannesburg", "Earth, Africa, South Africa");
+	planetaryPads.emplace_back("ada", "Adelaide", "Earth, Australia, South Australia");
+	planetaryPads.emplace_back("ack", "Auckland", "Earth, Southwestern Pacific, New Zealand");
+	planetaryPads.emplace_back("atn", "Athens", "Earth, Southeastern Europe, Greece");
 }
 
 vector<BFRPlatform> extraPlanetaryPads;
