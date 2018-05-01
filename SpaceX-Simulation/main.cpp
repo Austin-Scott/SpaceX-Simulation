@@ -80,6 +80,7 @@ Options:
  -average_flights_with_secondary <average_flights>   #Average number of flights with secondary payloads per 1000
  -dragon_crew_capacity <number_of_crew_members>      #Sets max number of crew members in dragon flight
  -bfs_max_suborbital_flights <number_of_flights>     #Sets the max number of suborbital flights per day
+ -bfs_suborbital_flight_chance <chance>              #Sets the chance out of 1000 that a suborbital flight will happen
  -bfs_colony_flights_per_month <number_of_flights>   #Sets the average number of BFR colony missions per month
  -bfr_max_reflights <reflights>                      #Sets the max number of times a BFR can fly before retirement
  -bfr_average_successful_launches <average>          #Sets average number of successful BFR launches per 1000
@@ -89,6 +90,9 @@ Options:
  -bfs_colony_stay_duration <days_at_colony>          #Sets the number of days a BFS will stay at a colony
  -bfs_crew_capacity <crew_members>                   #Sets the maximum number of crew members that can fly on BFS
  -bfr_flight_operational <date_bfr_flights_start>    #Sets the day BFR flights can start. Format: "YYYY-MM-DD"
+ -same_day_reflight <chance_out_of_1000>             #Sets the chance a block five booster will fly again on same day
+ -do_not_count_suborbital                            #Suborbital flights no longer count towards mission total
+ 
 )";
 	cout << options << endl;
 }
@@ -400,6 +404,31 @@ void parseCmdLineArgs(int argc, char** argv) {
 				printHelp(argv[0]);
 				abort();
 			}
+		}
+		else if (strcmp(argv[i], "-bfs_suborbital_flight_chance") == 0) {
+			if (argc - i >= 2) {
+				i++;
+				BFS_SUBORBITAL_FLIGHT_CHANCE = atoi(argv[i]);
+			}
+			else {
+				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
+				printHelp(argv[0]);
+				abort();
+			}
+		}
+		else if (strcmp(argv[i], "-same_day_reflight") == 0) {
+			if (argc - i >= 2) {
+				i++;
+				SAME_DAY_REFLIGHT = atoi(argv[i]);
+			}
+			else {
+				cout << "Error: Incorrect number of arguments following argument. Aborting." << endl;
+				printHelp(argv[0]);
+				abort();
+			}
+		}
+		else if (strcmp(argv[i], "-do_not_count_suborbital") == 0) {
+			COUNT_SUBORBITAL = false;
 		}
 		else {
 			cout << "Error: Unknown argument \"" << argv[i] << "\". Aborting." << endl;

@@ -10,6 +10,8 @@ int BFS_MINIMUM_PAYLOAD_MASS = 50000;
 int BFS_MAXIMUM_PAYLOAD_MASS = 150000;
 int BFS_COLONY_STAY_DURATION = 10;
 int BFS_CREW_CAPACITY = 100;
+int BFS_SUBORBITAL_FLIGHT_CHANCE = 900;
+bool COUNT_SUBORBITAL = true;
 
 Date BFR_FLIGHT_OPERATIONAL = Date("2023-12-26");
 
@@ -161,12 +163,15 @@ void BFRFlights(default_random_engine &e) {
 		extraPlanetaryBFRFlight(e);
 		currentNumberOfFlights++;
 	}
-	uniform_int_distribution<int> howManyFlights(0, BFS_SUBORBITAL_MAX_FLIGHTS_PER_DAY);
-	int flights = howManyFlights(e);
-	for (int i = 0; i < flights; i++) { //Perform airplane like operations
-		cout << "Generating BFR Earth-to-Earth mission. Flight #" << Mission::getNextAvailableMissionNumber() << "..." << endl;
-		planetaryBFRFlight(e);
-		currentNumberOfFlights++;
+	if (chanceOutOf1000(BFS_SUBORBITAL_FLIGHT_CHANCE, e)) {
+		uniform_int_distribution<int> howManyFlights(0, BFS_SUBORBITAL_MAX_FLIGHTS_PER_DAY);
+		int flights = howManyFlights(e);
+		for (int i = 0; i < flights; i++) { //Perform airplane like operations
+			cout << "Generating BFR Earth-to-Earth mission. Flight #" << Mission::getNextAvailableMissionNumber() << "..." << endl;
+			planetaryBFRFlight(e);
+			if(COUNT_SUBORBITAL)
+				currentNumberOfFlights++;
+		}
 	}
 
 	//Create return flights from colonies

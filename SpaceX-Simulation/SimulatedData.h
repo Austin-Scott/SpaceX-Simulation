@@ -22,6 +22,7 @@ int MINIMUM_FLIGHT_READY_DRAGONS = 2;
 int MAXIMUM_SECONDARY_PAYLOADS = 3;
 int AVERAGE_FLIGHTS_WITH_SECONDARY_PAYLOADS_PER_1000 = 250;
 int DRAGON_CREW_CAPACITY = 7;
+int SAME_DAY_REFLIGHT = 010;
 
 const int numberOfLandingSites = 8;
 string landingSites[] = { "OCISLY", "JRTI", "ASOG", "LZ-1", "LZ-2", "VAFB LZ-1", "VAFB LZ-2", "ST LZ-1" };
@@ -84,7 +85,7 @@ void updateHangers() {
 	}
 }
 
-bool generateMission(default_random_engine &e) {
+bool generateMission(default_random_engine &e, Booster* reflownBooster=nullptr) {
 	//Step 1: Pick payload
 	uniform_int_distribution<int> payloadChoices(0, numOfPayloadNames - 1);
 	int payloadChoice = payloadChoices(e);
@@ -112,6 +113,7 @@ bool generateMission(default_random_engine &e) {
 	}
 	//Step 4: Choose launch vehicle configuration
 	bool falconHeavy = chanceOutOf1000(AVERAGE_FALCON_HEAVY_FLIGHTS_PER_1000, e);
+	if (reflownBooster != nullptr) falconHeavy = false;
 	//Step 5: Figure out if mission is possible with current configuration based on payload mass
 	int dragonMass = payloadNames[payloadChoice].requiresDragon ? WEIGHT_OF_DRAGON : 0;
 	if (!falconHeavy) {
@@ -135,11 +137,16 @@ bool generateMission(default_random_engine &e) {
 	}
 	//Step 8: Assign Core/s
 	vector<Booster*> cores;
-	if (falconHeavy) {
-		cores = flightActiveCores.getRandomVehicles(3, e);
+	if (reflownBooster != nullptr) {
+		cores.push_back(reflownBooster);
 	}
 	else {
-		cores = flightActiveCores.getRandomVehicles(1, e);
+		if (falconHeavy) {
+			cores = flightActiveCores.getRandomVehicles(3, e);
+		}
+		else {
+			cores = flightActiveCores.getRandomVehicles(1, e);
+		}
 	}
 	//Step 9: Get/Create launchsite reference
 	LaunchSite* missionLaunchSite = findLaunchSite(launchSites[launchSite].name);
@@ -300,6 +307,13 @@ bool generateMission(default_random_engine &e) {
 
 	strcpy(description, mission->Description, 400);
 
+	currentNumberOfFlights++;
+
+	//Refly this booster on the same day
+	if (!falconHeavy && chanceOutOf1000(SAME_DAY_REFLIGHT, e)) {
+		generateMission(e, cores[0]);
+	}
+
 	return true;
 }
 
@@ -313,7 +327,6 @@ void runSimulation() {
 		if (chanceOutOf30(AVERAGE_FLIGHTS_PER_MONTH, e)) { //Let's go to space today!! :)
 			cout << "Generating simulated mission #" << Mission::getNextAvailableMissionNumber() << "..." << endl;
 			generateMission(e);
-			currentNumberOfFlights++;
 		}
 		if (today > BFR_FLIGHT_OPERATIONAL) {
 			BFRFlights(e);
